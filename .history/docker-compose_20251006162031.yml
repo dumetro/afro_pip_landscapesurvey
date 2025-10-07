@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  streamlit-app:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=who_afro_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_password
+      - DB_PORT=5432
+    depends_on:
+      - postgres
+    volumes:
+      - ./.streamlit:/app/.streamlit
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=who_afro_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres_data:
