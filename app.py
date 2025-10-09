@@ -604,7 +604,7 @@ def main():
     selected_categories = st.sidebar.multiselect(
         "Select Categories", 
         available_categories, 
-        default=available_categories[:3]  # Select first 3 by default
+        default=[]  # No categories selected by default
     )
     
     # Country filter
@@ -612,14 +612,19 @@ def main():
     selected_countries = st.sidebar.multiselect(
         "Select Countries", 
         available_countries,
-        default=available_countries[:10] if len(available_countries) > 10 else available_countries
+        default=[]  # No countries selected by default
     )
     
     # Apply filters
-    filtered_data = landscape_data[
-        (landscape_data['Category'].isin(selected_categories)) &
-        (landscape_data['Country'].isin(selected_countries))
-    ]
+    filtered_data = landscape_data.copy()
+    
+    # Apply category filter only if categories are selected
+    if selected_categories:
+        filtered_data = filtered_data[filtered_data['Category'].isin(selected_categories)]
+    
+    # Apply country filter only if countries are selected  
+    if selected_countries:
+        filtered_data = filtered_data[filtered_data['Country'].isin(selected_countries)]
     
     # Data Quality Overview
     st.markdown('<div class="section-header"><h2>📊 Data Overview</h2></div>', unsafe_allow_html=True)
