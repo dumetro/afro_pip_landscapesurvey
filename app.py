@@ -129,10 +129,7 @@ def load_countries_data():
             # Try different possible schema/table combinations
             queries_to_try = [
                 "SELECT * FROM countryprofiles.countries;",
-                "SELECT * FROM countries;",
-                "SELECT * FROM public.countries;",
                 "SELECT DISTINCT countryname as country_name FROM countryprofiles.country_indicators;",
-                "SELECT DISTINCT countryname as country_name FROM country_indicators;"
             ]
             
             for query in queries_to_try:
@@ -186,7 +183,7 @@ def load_landscape_survey_data():
     engine = init_connection()
     if engine:
         try:
-            # Try different possible schema/table combinations
+
             queries_to_try = [
                 """
                 SELECT ci.countryname as Country,
@@ -196,26 +193,6 @@ def load_landscape_survey_data():
                 FROM countryprofiles.country_indicators ci
                 INNER JOIN countryprofiles.indicators ind on ind.indicator_id=ci.indicator_id
                 INNER JOIN countryprofiles.indicator_categories ic on ic.category_id=ind.category_id
-                ORDER BY ci.countryname,ic.category_id,ci.indicatorname;
-                """,
-                """
-                SELECT ci.countryname as Country,
-                       ic.cat_name as Category,
-                       ci.indicatorname as Indicator,
-                       ci.survey_response as Response 
-                FROM country_indicators ci
-                INNER JOIN indicators ind on ind.indicator_id=ci.indicator_id
-                INNER JOIN indicator_categories ic on ic.category_id=ind.category_id
-                ORDER BY ci.countryname,ic.category_id,ci.indicatorname;
-                """,
-                """
-                SELECT ci.countryname as Country,
-                       ic.cat_name as Category,
-                       ci.indicatorname as Indicator,
-                       ci.survey_response as Response 
-                FROM public.country_indicators ci
-                INNER JOIN public.indicators ind on ind.indicator_id=ci.indicator_id
-                INNER JOIN public.indicator_categories ic on ic.category_id=ind.category_id
                 ORDER BY ci.countryname,ic.category_id,ci.indicatorname;
                 """
             ]
@@ -1074,9 +1051,7 @@ def main():
     
     4. **Standardization**: Response formats vary across indicators, making direct numerical comparisons challenging.
     
-    5. **Geographic Coverage**: Analysis is limited to countries present in the dataset - may not represent all WHO AFRO member states.
-    
-    6. **Indicator Definitions**: Without metadata about indicator definitions and measurement units, interpretation may be limited.
+    5. **Indicator Definitions**: Without metadata about indicator definitions and measurement units, interpretation may be limited.
     """)
     
 if __name__ == "__main__":
