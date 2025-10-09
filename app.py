@@ -101,7 +101,7 @@ def init_connection():
             }
         
         # Debug: Print connection info (remove in production)
-        st.info(f"🔧 Attempting connection to: {DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']} as {DB_CONFIG['user']}")
+        #st.info(f"🔧 Attempting connection to: {DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']} as {DB_CONFIG['user']}")
         
         # URL encode the password to handle special characters like @
         encoded_password = quote_plus(DB_CONFIG['password'])
@@ -116,10 +116,12 @@ def init_connection():
         st.success("✅ Database connection successful!")
         return engine
     except Exception as e:
-        # Clean warning message without exposing error details
-        db_name = DB_CONFIG.get('database', 'emp_pip') if 'DB_CONFIG' in locals() else 'emp_pip'
-        st.warning(f"⚠️ Database '{db_name}' is currently unavailable. Static CSV data is currently being used.")
-        st.info("ℹ️ Falling back to CSV data from the data/ folder")
+        # Clean warning message without exposing error details - show only once per session
+        if 'db_warning_shown' not in st.session_state:
+            db_name = DB_CONFIG.get('database', 'emp_pip') if 'DB_CONFIG' in locals() else 'emp_pip'
+            #st.warning(f"⚠️ Database '{db_name}' is currently unavailable. Static CSV data is currently being used.")
+            st.session_state.db_warning_shown = True
+       # st.info("ℹ️ Falling back to CSV data from the data/ folder")
         return None
 
 @st.cache_data
@@ -821,7 +823,7 @@ def main():
             st.metric("Total Indicators", total_indicators)
         
         # Display the response analysis table
-        st.markdown("**Response Distribution Table:**")
+        st.markdown("**Response Analysis Table:**")
         
         # Add search functionality
         search_term = st.text_input("🔍 Search indicators or responses:", placeholder="Type to filter indicators or responses...")
@@ -881,7 +883,7 @@ def main():
             ])
             
             # Display styled dataframe
-            st.markdown("**Response Distribution Table (Sorted by Indicator → Response):**")
+            st.markdown("**Response Analysis Table :**")
             st.dataframe(
                 styled_df,
                 use_container_width=True,
@@ -899,7 +901,7 @@ def main():
             )
         else:
             # Fallback without styling
-            st.markdown("**Response Distribution Table (Sorted by Indicator → Response):**")
+            st.markdown("**Response Analysis Table:**")
             st.dataframe(
                 display_summary,
                 use_container_width=True,
@@ -1056,5 +1058,56 @@ def main():
     5. **Indicator Definitions**: Without metadata about indicator definitions and measurement units, interpretation may be limited.
     """)
     
+    # Database Connection Status
+    st.markdown("---")
+    st.markdown('<div class="section-header"><h2>🔌 System Information</h2></div>', unsafe_allow_html=True)
+    
+    # Check database connection status
+    engine = init_connection()
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("📊 Data Source")
+        if engine:
+            st.success("✅ **Database Connection**: Active")
+            st.info("📡 **Source**: PostgreSQL Database (emp_pip)")
+            
+            # Get database config for display
+            if hasattr(st, 'secrets') and 'database' in st.secrets:
+                db_host = st.secrets.database.get("DB_HOST", "Unknown")
+                db_name = st.secrets.database.get("DB_NAME", "Unknown") 
+                db_user = st.secrets.database.get("DB_USER", "Unknown")
+                db_port = st.secrets.database.get("DB_PORT", "5432")
+                
+                st.write(f"**Host**: {db_host}")
+                st.write(f"**Database**: {db_name}")
+                st.write(f"**User**: {db_user}")
+                st.write(f"**Port**: {db_port}")
+            else:
+                st.write("**Configuration**: Using fallback settings")
+        else:
+            st.warning("⚠️ **Database Connection**: Unavailable")
+            st.info("📁 **Source**: CSV Files (Static Data)")
+            st.write("**Fallback Mode**: Using local CSV data from /data folder")
+    
+    # with col2:
+    #     st.subheader("📈 Data Statistics")
+        
+    #     # Display current data statistics
+    #     total_records = len(landscape_data)
+    #     total_countries = landscape_data['Country'].nunique()
+    #     total_categories = landscape_data['Category'].nunique() 
+    #     total_indicators = landscape_data['Indicator'].nunique()
+        
+    #     st.write(f"**Total Records**: {total_records:,}")
+    #     st.write(f"**Countries**: {total_countries}")
+    #     st.write(f"**Categories**: {total_categories}")
+    #     st.write(f"**Indicators**: {total_indicators}")
+        
+    #     # Data freshness
+    #     st.write(f"**Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    #     st.write(f"**Session ID**: {st.session_state.get('session_id', 'Not available')}")
+
 if __name__ == "__main__":
     main()
