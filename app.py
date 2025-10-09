@@ -116,7 +116,9 @@ def init_connection():
         st.success("✅ Database connection successful!")
         return engine
     except Exception as e:
-        st.error(f"❌ Database connection failed: {e}")
+        # Clean warning message without exposing error details
+        db_name = DB_CONFIG.get('database', 'emp_pip') if 'DB_CONFIG' in locals() else 'emp_pip'
+        st.warning(f"⚠️ Database '{db_name}' is currently unavailable. Static CSV data is currently being used.")
         st.info("ℹ️ Falling back to CSV data from the data/ folder")
         return None
 
