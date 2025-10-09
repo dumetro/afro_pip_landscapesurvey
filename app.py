@@ -986,7 +986,7 @@ def main():
     st.markdown('<div class="section-header"><h2>📋 Detailed Survey Data</h2></div>', unsafe_allow_html=True)
     
     # Data explorer
-    st.subheader("� Data Explorer")
+    st.subheader("🗂️ Data Explorer")
     
     # Filter options
     col1, col2, col3 = st.columns(3)
