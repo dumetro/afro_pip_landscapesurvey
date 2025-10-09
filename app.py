@@ -9,6 +9,7 @@ import numpy as np
 from datetime import datetime, date
 import warnings
 from urllib.parse import quote_plus
+import os
 warnings.filterwarnings('ignore')
 
 # Page configuration
@@ -223,7 +224,9 @@ def load_landscape_survey_data():
 def load_csv_data():
     """Load landscape survey data from CSV file"""
     try:
-        data_path = "/Users/wildhorizons/Documents/who_projects/afro_pip_landscapesurvey/data/landscapesurvey102025.csv"
+        # Use relative path that works in any environment
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        data_path = os.path.join(script_dir, "data", "landscapesurvey102025.csv")
         df = pd.read_csv(data_path)
         # Standardize column names to match the query
         df.columns = ['Country', 'Category', 'Indicator', 'Response']
