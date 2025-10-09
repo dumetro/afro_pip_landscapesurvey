@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 import numpy as np
 from datetime import datetime, date
 import warnings
+from urllib.parse import quote_plus
 warnings.filterwarnings('ignore')
 
 # Page configuration
@@ -70,33 +71,53 @@ def init_connection():
     """Initialize database connection"""
     try:
         # Try to get credentials from secrets first, then fallback to environment
-        if hasattr(st, 'secrets') and 'database' in st.secrets:
-            DB_CONFIG = {
-                'host': st.secrets.database.get("DB_HOST", "localhost"),
-                'database': st.secrets.database.get("DB_NAME", "countryprofiles"),
-                'user': st.secrets.database.get("DB_USER", "postgres"),
-                'password': st.secrets.database.get("DB_PASSWORD", "password"),
-                'port': st.secrets.database.get("DB_PORT", "5432")
-            }
+        if hasattr(st, 'secrets'):
+            # Check if database section exists, otherwise use top-level secrets
+            if 'database' in st.secrets:
+                DB_CONFIG = {
+                    'host': st.secrets.database.get("DB_HOST", "localhost"),
+                    'database': st.secrets.database.get("DB_NAME", "emp_pip"),
+                    'user': st.secrets.database.get("DB_USER", "postgres"),
+                    'password': st.secrets.database.get("DB_PASSWORD", "password"),
+                    'port': st.secrets.database.get("DB_PORT", "5432")
+                }
+            else:
+                # Use top-level secrets
+                DB_CONFIG = {
+                    'host': st.secrets.get("DB_HOST", "localhost"),
+                    'database': st.secrets.get("DB_NAME", "emp_pip"),
+                    'user': st.secrets.get("DB_USER", "postgres"),
+                    'password': st.secrets.get("DB_PASSWORD", "password"),
+                    'port': st.secrets.get("DB_PORT", "5432")
+                }
         else:
             # Fallback configuration for development
             DB_CONFIG = {
                 'host': "localhost",
-                'database': "countryprofiles",  # Updated to match the query schema
+                'database': "emp_pip",  # Updated to match your actual database
                 'user': "postgres",
                 'password': "password",
                 'port': "5432"
             }
         
+        # Debug: Print connection info (remove in production)
+        st.info(f"🔧 Attempting connection to: {DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']} as {DB_CONFIG['user']}")
+        
+        # URL encode the password to handle special characters like @
+        encoded_password = quote_plus(DB_CONFIG['password'])
+        
         engine = create_engine(
-            f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
+            f"postgresql://{DB_CONFIG['user']}:{encoded_password}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
         )
         # Test connection
         with engine.connect() as conn:
             conn.execute("SELECT 1")
+        
+        st.success("✅ Database connection successful!")
         return engine
     except Exception as e:
-        st.warning(f"Database connection failed: {e}. Using CSV data fallback.")
+        st.error(f"❌ Database connection failed: {e}")
+        st.info("ℹ️ Falling back to CSV data from the data/ folder")
         return None
 
 @st.cache_data
@@ -105,8 +126,26 @@ def load_countries_data():
     engine = init_connection()
     if engine:
         try:
-            query = "SELECT * FROM countryprofiles.countries;"
-            return pd.read_sql(query, engine)
+            # Try different possible schema/table combinations
+            queries_to_try = [
+                "SELECT * FROM countryprofiles.countries;",
+                "SELECT * FROM countries;",
+                "SELECT * FROM public.countries;",
+                "SELECT DISTINCT countryname as country_name FROM countryprofiles.country_indicators;",
+                "SELECT DISTINCT countryname as country_name FROM country_indicators;"
+            ]
+            
+            for query in queries_to_try:
+                try:
+                    st.write(f"🔍 Trying query: {query}")
+                    return pd.read_sql(query, engine)
+                except Exception as query_error:
+                    st.write(f"❌ Query failed: {query_error}")
+                    continue
+                    
+            # If all queries fail
+            raise Exception("All country queries failed")
+            
         except Exception as e:
             st.warning(f"Failed to load countries data: {e}. Using CSV fallback.")
             return load_csv_fallback_countries()
@@ -147,17 +186,53 @@ def load_landscape_survey_data():
     engine = init_connection()
     if engine:
         try:
-            query = """
-            SELECT ci.countryname as Country,
-                   ic.cat_name as Category,
-                   ci.indicatorname as Indicator,
-                   survey_response as Response 
-            FROM countryprofiles.country_indicators ci
-            INNER JOIN countryprofiles.indicators ind on ind.indicator_id=ci.indicator_id
-            INNER JOIN countryprofiles.indicator_categories ic on ic.category_id=ind.category_id
-            ORDER BY ci.countryname,ic.category_id,ci.indicatorname;
-            """
-            return pd.read_sql(query, engine)
+            # Try different possible schema/table combinations
+            queries_to_try = [
+                """
+                SELECT ci.countryname as Country,
+                       ic.cat_name as Category,
+                       ci.indicatorname as Indicator,
+                       survey_response as Response 
+                FROM countryprofiles.country_indicators ci
+                INNER JOIN countryprofiles.indicators ind on ind.indicator_id=ci.indicator_id
+                INNER JOIN countryprofiles.indicator_categories ic on ic.category_id=ind.category_id
+                ORDER BY ci.countryname,ic.category_id,ci.indicatorname;
+                """,
+                """
+                SELECT ci.countryname as Country,
+                       ic.cat_name as Category,
+                       ci.indicatorname as Indicator,
+                       ci.survey_response as Response 
+                FROM country_indicators ci
+                INNER JOIN indicators ind on ind.indicator_id=ci.indicator_id
+                INNER JOIN indicator_categories ic on ic.category_id=ind.category_id
+                ORDER BY ci.countryname,ic.category_id,ci.indicatorname;
+                """,
+                """
+                SELECT ci.countryname as Country,
+                       ic.cat_name as Category,
+                       ci.indicatorname as Indicator,
+                       ci.survey_response as Response 
+                FROM public.country_indicators ci
+                INNER JOIN public.indicators ind on ind.indicator_id=ci.indicator_id
+                INNER JOIN public.indicator_categories ic on ic.category_id=ind.category_id
+                ORDER BY ci.countryname,ic.category_id,ci.indicatorname;
+                """
+            ]
+            
+            for query in queries_to_try:
+                try:
+                    st.write(f"🔍 Trying main query...")
+                    result = pd.read_sql(query, engine)
+                    st.success(f"✅ Successfully loaded {len(result)} records from database!")
+                    return result
+                except Exception as query_error:
+                    st.write(f"❌ Database query failed: {query_error}")
+                    continue
+                    
+            # If all queries fail
+            raise Exception("All landscape survey queries failed")
+            
         except Exception as e:
             st.warning(f"Failed to load landscape survey data: {e}. Using CSV data.")
             return load_csv_data()
@@ -527,6 +602,7 @@ def main():
     <div class="main-header">
         <h1>🌍 WHO AFRO Influenza Landscape Survey Dashboard</h1>
         <p>Country Profiles and Respiratory Surveillance Analysis</p>
+        <p>Survey Period: 2023 - 2024</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -699,6 +775,223 @@ def main():
         )
         st.plotly_chart(fig_complete, use_container_width=True)
     
+    # Response Analysis Table
+    st.markdown("---")
+    st.subheader("📋 Response Analysis by Category and Indicator")
+    
+    # Category filter for the response analysis table
+    selected_analysis_category = st.selectbox(
+        "Select Category for Response Analysis",
+        options=['All Categories'] + sorted(landscape_data['Category'].unique()),
+        key="response_analysis_category"
+    )
+    
+    # Filter data based on category selection
+    if selected_analysis_category == 'All Categories':
+        analysis_data = landscape_data.copy()
+    else:
+        analysis_data = landscape_data[landscape_data['Category'] == selected_analysis_category]
+    
+    if not analysis_data.empty:
+        # Group by Category, Indicator, Response and count countries
+        response_summary = analysis_data.groupby(['Category', 'Indicator', 'Response']).agg({
+            'Country': 'count'
+        }).reset_index()
+        
+        # Rename the count column
+        response_summary.rename(columns={'Country': '# of Countries Responded'}, inplace=True)
+        
+        # Sort by indicator, then by response as requested
+        response_summary = response_summary.sort_values([
+            'Indicator', 
+            'Response'
+        ], ascending=[True, True])
+        
+        # Add alternating row colors based on indicator changes
+        response_summary['row_color'] = ''
+        current_indicator = None
+        color_index = 0
+        
+        for idx, row in response_summary.iterrows():
+            if current_indicator != row['Indicator']:
+                current_indicator = row['Indicator']
+                color_index = (color_index + 1) % 2
+            
+            if color_index == 0:
+                response_summary.at[idx, 'row_color'] = 'background-color: #f8f9fa;'  # Very light gray
+            else:
+                response_summary.at[idx, 'row_color'] = 'background-color: #ffffff;'  # White
+        
+        # Display summary statistics
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            total_unique_responses = len(response_summary)
+            st.metric("Unique Response Types", total_unique_responses)
+        
+        with col2:
+            avg_countries_per_indicator = response_summary['# of Countries Responded'].mean()
+            st.metric("Avg Countries per Response", f"{avg_countries_per_indicator:.1f}")
+        
+        with col3:
+            max_countries = response_summary['# of Countries Responded'].max()
+            st.metric("Max Countries per Response", max_countries)
+        
+        with col4:
+            total_indicators = response_summary['Indicator'].nunique()
+            st.metric("Total Indicators", total_indicators)
+        
+        # Display the response analysis table
+        st.markdown("**Response Distribution Table:**")
+        
+        # Add search functionality
+        search_term = st.text_input("🔍 Search indicators or responses:", placeholder="Type to filter indicators or responses...")
+        
+        # Apply search filter
+        if search_term:
+            mask = (
+                response_summary['Indicator'].str.contains(search_term, case=False, na=False) |
+                response_summary['Response'].str.contains(search_term, case=False, na=False)
+            )
+            filtered_summary = response_summary[mask]
+        else:
+            filtered_summary = response_summary
+        
+        # Display the filtered table with styling
+        def highlight_rows(row):
+            return [row['row_color']] * len(row)
+        
+        # Create a copy for display without the row_color column
+        display_summary = filtered_summary.drop(columns=['row_color'], errors='ignore').copy()
+        
+        # Apply styling if row_color column exists
+        if 'row_color' in filtered_summary.columns:
+            styled_df = display_summary.style.apply(
+                lambda row: [filtered_summary.loc[row.name, 'row_color']] * len(row) 
+                if row.name in filtered_summary.index else [''] * len(row), 
+                axis=1
+            ).set_table_styles([
+                {
+                    'selector': 'thead th',
+                    'props': [
+                        ('background-color', '#e3f2fd'),
+                        ('color', '#1565c0'),
+                        ('font-weight', 'bold'),
+                        ('border', '1px solid #bbdefb'),
+                        ('padding', '12px 8px'),
+                        ('text-align', 'center')
+                    ]
+                },
+                {
+                    'selector': 'tbody td',
+                    'props': [
+                        ('border', '1px solid #e0e0e0'),
+                        ('padding', '10px 8px'),
+                        ('font-size', '14px')
+                    ]
+                },
+                {
+                    'selector': 'table',
+                    'props': [
+                        ('border-collapse', 'collapse'),
+                        ('border-radius', '8px'),
+                        ('overflow', 'hidden'),
+                        ('box-shadow', '0 2px 8px rgba(0,0,0,0.1)')
+                    ]
+                }
+            ])
+            
+            # Display styled dataframe
+            st.markdown("**Response Distribution Table (Sorted by Indicator → Response):**")
+            st.dataframe(
+                styled_df,
+                use_container_width=True,
+                height=400,
+                column_config={
+                    "Category": st.column_config.TextColumn("Category", width="medium"),
+                    "Indicator": st.column_config.TextColumn("Indicator", width="large"),
+                    "Response": st.column_config.TextColumn("Response", width="medium"),
+                    "# of Countries Responded": st.column_config.NumberColumn(
+                        "# of Countries",
+                        help="Number of countries that provided this response",
+                        format="%d"
+                    )
+                }
+            )
+        else:
+            # Fallback without styling
+            st.markdown("**Response Distribution Table (Sorted by Indicator → Response):**")
+            st.dataframe(
+                display_summary,
+                use_container_width=True,
+                height=400,
+                column_config={
+                    "Category": st.column_config.TextColumn("Category", width="medium"),
+                    "Indicator": st.column_config.TextColumn("Indicator", width="large"),
+                    "Response": st.column_config.TextColumn("Response", width="medium"),
+                    "# of Countries Responded": st.column_config.NumberColumn(
+                        "# of Countries",
+                        help="Number of countries that provided this response",
+                        format="%d"
+                    )
+                }
+            )
+        
+        # Download button for the response analysis (exclude styling column)
+        download_summary = filtered_summary.drop(columns=['row_color'], errors='ignore')
+        csv_response_analysis = download_summary.to_csv(index=False)
+        st.download_button(
+            label="📥 Download Response Analysis as CSV",
+            data=csv_response_analysis,
+            file_name=f"response_analysis_{selected_analysis_category.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv"
+        )
+        
+        # Additional insights
+        if not filtered_summary.empty:
+            st.markdown("---")
+            st.subheader("📊 Response Insights")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Most common responses across all indicators
+                st.write("**Most Common Responses (All Indicators):**")
+                most_common_responses = filtered_summary.groupby('Response')['# of Countries Responded'].sum().sort_values(ascending=False).head(10)
+                
+                for response, count in most_common_responses.items():
+                    st.write(f"• **{response}**: {count} country responses")
+            
+            with col2:
+                # Indicators with highest response diversity
+                st.write("**Indicators with Most Response Diversity:**")
+                response_diversity = filtered_summary.groupby('Indicator').size().sort_values(ascending=False).head(10)
+                
+                for indicator, diversity in response_diversity.items():
+                    st.write(f"• **{indicator[:50]}{'...' if len(indicator) > 50 else ''}**: {diversity} different responses")
+        
+        # Visualization of response distribution
+        if len(filtered_summary) > 0:
+            st.markdown("---")
+            st.subheader("📈 Response Distribution Visualization")
+            
+            # Create a sunburst chart showing Category -> Indicator -> Response distribution
+            if len(filtered_summary) <= 100:  # Only show for reasonable data sizes
+                fig_sunburst = px.sunburst(
+                    filtered_summary,
+                    path=['Category', 'Indicator', 'Response'],
+                    values='# of Countries Responded',
+                    title="Response Distribution Hierarchy (Category → Indicator → Response)",
+                    height=600
+                )
+                fig_sunburst.update_layout(font=dict(family="Montserrat"))
+                st.plotly_chart(fig_sunburst, use_container_width=True)
+            else:
+                st.info("📊 Visualization hidden for large datasets. Use filters to reduce data size for visualization.")
+    
+    else:
+        st.warning("No data available for the selected category.")
+
     # Detailed Data Tables
     st.markdown("---")
     st.markdown('<div class="section-header"><h2>📋 Detailed Survey Data</h2></div>', unsafe_allow_html=True)
