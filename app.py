@@ -196,12 +196,6 @@ def load_landscape_survey_data():
                        survey_response as response,
                        ic.category_id as category_id,
                        ci.indicator_id as indicator_id
-                SELECT ci.countryname as country,
-                       ic.cat_name as category,
-                       ci.indicatorname as indicator,
-                       survey_response as response,
-                       ic.category_id as category_id,
-                       ci.indicator_id as indicator_id
                 FROM countryprofiles.country_indicators ci
                 INNER JOIN countryprofiles.indicators ind on ind.indicator_id=ci.indicator_id
                 INNER JOIN countryprofiles.indicator_categories ic on ic.category_id=ind.category_id
@@ -234,10 +228,7 @@ def load_csv_data():
         # Use relative path that works in any environment
         script_dir = os.path.dirname(os.path.abspath(__file__))
         data_path = os.path.join(script_dir, "data", "landscapesurvey2024.csv")
-        data_path = os.path.join(script_dir, "data", "landscapesurvey2024.csv")
         df = pd.read_csv(data_path)
-        # Use the actual column names from the file
-        # Columns are: country, category, indicator, response, category_id, indicator_id
         # Use the actual column names from the file
         # Columns are: country, category, indicator, response, category_id, indicator_id
         return df
@@ -246,14 +237,6 @@ def load_csv_data():
         return pd.DataFrame()
 
 def load_csv_fallback_countries():
-    """Fallback function to load countries from CSV"""
-    try:
-        landscape_data = load_csv_data()
-        countries = landscape_data['country'].unique()
-        return [{'name': country} for country in countries]
-    except Exception as e:
-        st.error(f"Failed to load countries from CSV: {e}")
-        return []
     """Fallback function to load countries from CSV"""
     try:
         landscape_data = load_csv_data()
@@ -272,20 +255,11 @@ def load_csv_fallback_indicators():
     except Exception as e:
         st.error(f"Failed to load indicators from CSV: {e}")
         return []
-    """Fallback function to load indicators from CSV"""
-    try:
-        landscape_data = load_csv_data()
-        indicators = landscape_data['indicator'].unique()
-        return [{'name': indicator} for indicator in indicators]
-    except Exception as e:
-        st.error(f"Failed to load indicators from CSV: {e}")
-        return []
 
 def load_csv_fallback_categories():
     """Generate categories data from CSV"""
     landscape_data = load_csv_data()
     if not landscape_data.empty:
-        categories = landscape_data['category'].unique()
         categories = landscape_data['category'].unique()
         return pd.DataFrame({
             'category_id': range(1, len(categories) + 1),
@@ -300,18 +274,14 @@ def generate_descriptive_statistics(data, category=None):
     
     if category:
         data = data[data['category'] == category]
-        data = data[data['category'] == category]
     
     stats = {}
     
     # Convert response to numeric where possible
     numeric_responses = pd.to_numeric(data['response'], errors='coerce')
-    # Convert response to numeric where possible
-    numeric_responses = pd.to_numeric(data['response'], errors='coerce')
     numeric_data = data[numeric_responses.notna()]
     
     if not numeric_data.empty:
-        numeric_values = pd.to_numeric(numeric_data['response'])
         numeric_values = pd.to_numeric(numeric_data['response'])
         stats['numeric'] = {
             'count': len(numeric_values),
@@ -326,9 +296,7 @@ def generate_descriptive_statistics(data, category=None):
     
     # Categorical responses
     categorical_data = data[pd.to_numeric(data['response'], errors='coerce').isna()]
-    categorical_data = data[pd.to_numeric(data['response'], errors='coerce').isna()]
     if not categorical_data.empty:
-        value_counts = categorical_data['response'].value_counts()
         value_counts = categorical_data['response'].value_counts()
         stats['categorical'] = {
             'unique_values': len(value_counts),
@@ -338,9 +306,9 @@ def generate_descriptive_statistics(data, category=None):
     
     # Country coverage
     stats['coverage'] = {
-        'countries_with_data': int(data['country'].nunique()),
-        'total_indicators': int(data['indicator'].nunique()),
-        'response_rate': (len(data) / (data['country'].nunique() * data['indicator'].nunique())) if data['indicator'].nunique() > 0 else 0
+        'countries_with_data': data['country'].nunique(),
+        'total_indicators': data['indicator'].nunique(),
+        'response_rate': len(data) / (data['country'].nunique() * data['indicator'].nunique()) if data['indicator'].nunique() > 0 else 0
     }
     
     return stats
@@ -408,7 +376,7 @@ def load_surveillance_data():
     pivoted = surveillance_data.pivot_table(
         index=['country'], 
         columns=['indicator'], 
-        values='response',  
+        values='response', 
         aggfunc='first'
     ).reset_index()
     
@@ -636,9 +604,46 @@ def main():
     # Regional Demographics and Economic Overview
     st.markdown('<div class="section-header"><h2>🌍 Regional Demographics and Economic Overview</h2></div>', unsafe_allow_html=True)
     
+    # Category filter
+    available_categories = sorted(landscape_data['category'].unique())
+    selected_categories = st.sidebar.multiselect(
+        "Select Categories", 
+        available_categories, 
+        default=[]  # No categories selected by default
+    )
+    
+    # Country filter
+    available_countries = sorted(landscape_data['country'].unique())
+    selected_countries = st.sidebar.multiselect(
+        "Select Countries", 
+        available_countries,
+        default=[]  # No countries selected by default
+    )
+    
+    # Calculate metrics with fallbacks
+    try:
+        total_population = pd.to_numeric(population_data['response'], errors='coerce').sum()
+        total_population = f"{total_population/1000000:.1f}M" if total_population > 0 else "Data pending"
+    except:
+        total_population = "Data pending"
+    
+    # Apply category filter only if categories are selected
+    if selected_categories:
+        filtered_data = filtered_data[filtered_data['category'].isin(selected_categories)]
+    
+    # Apply country filter only if countries are selected  
+    if selected_countries:
+        filtered_data = filtered_data[filtered_data['country'].isin(selected_countries)]
+    
+    # Regional Demographics and Economic Overview
+    st.markdown('<div class="section-header"><h2>🌍 Regional Demographics and Economic Overview</h2></div>', unsafe_allow_html=True)
+    
     # Filter data for demographic and economic categories
     demographic_categories = ['Population and Economy', 'Mortality per 100 000 population', 'Mortality per 1000 live births']
     demographic_data = landscape_data[landscape_data['category'].isin(demographic_categories)]
+    
+    # Calculate demographic metrics
+    total_countries = landscape_data['country'].nunique()
     
     # Extract specific indicators for calculations
     population_data = demographic_data[demographic_data['indicator'].str.contains('Population', case=False, na=False)]
