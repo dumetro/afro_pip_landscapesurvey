@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 # Page configuration
 st.set_page_config(
     page_title="WHO AFRO Influenza Landscape Survey",
-    page_icon="🌍",
+    page_icon="assets/who_logo.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -27,9 +27,13 @@ st.markdown("""
         background-color: #0093D5;
         color: white;
         padding: 1rem;
-        border-radius: 0.5rem;
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        margin-top: 0px;
+        border-radius: 0;
         text-align: center;
         margin-bottom: 2rem;
+        position: relative;
     }
     
     .metric-card {
@@ -191,10 +195,12 @@ def load_landscape_survey_data():
 
             queries_to_try = [
                 """
-                SELECT ci.countryname as Country,
-                       ic.cat_name as Category,
-                       ci.indicatorname as Indicator,
-                       survey_response as Response 
+                SELECT ci.countryname as country,
+                       ic.cat_name as category,
+                       ci.indicatorname as indicator,
+                       survey_response as response,
+                       ic.category_id as category_id,
+                       ci.indicator_id as indicator_id
                 FROM countryprofiles.country_indicators ci
                 INNER JOIN countryprofiles.indicators ind on ind.indicator_id=ci.indicator_id
                 INNER JOIN countryprofiles.indicator_categories ic on ic.category_id=ind.category_id
@@ -226,43 +232,40 @@ def load_csv_data():
     try:
         # Use relative path that works in any environment
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(script_dir, "data", "landscapesurvey102025.csv")
+        data_path = os.path.join(script_dir, "data", "landscapesurvey2024.csv")
         df = pd.read_csv(data_path)
-        # Standardize column names to match the query
-        df.columns = ['Country', 'Category', 'Indicator', 'Response']
+        # Use the actual column names from the file
+        # Columns are: country, category, indicator, response, category_id, indicator_id
         return df
     except Exception as e:
         st.error(f"Failed to load CSV data: {e}")
         return pd.DataFrame()
 
 def load_csv_fallback_countries():
-    """Generate countries data from CSV"""
-    landscape_data = load_csv_data()
-    if not landscape_data.empty:
-        countries = landscape_data['Country'].unique()
-        return pd.DataFrame({
-            'country_id': range(1, len(countries) + 1),
-            'country_name': countries,
-            'country_code': [country[:3].upper() for country in countries]
-        })
-    return pd.DataFrame()
+    """Fallback function to load countries from CSV"""
+    try:
+        landscape_data = load_csv_data()
+        countries = landscape_data['country'].unique()
+        return [{'name': country} for country in countries]
+    except Exception as e:
+        st.error(f"Failed to load countries from CSV: {e}")
+        return []
 
 def load_csv_fallback_indicators():
-    """Generate indicators data from CSV"""
-    landscape_data = load_csv_data()
-    if not landscape_data.empty:
-        indicators = landscape_data['Indicator'].unique()
-        return pd.DataFrame({
-            'indicator_id': range(1, len(indicators) + 1),
-            'indicator_name': indicators
-        })
-    return pd.DataFrame()
+    """Fallback function to load indicators from CSV"""
+    try:
+        landscape_data = load_csv_data()
+        indicators = landscape_data['indicator'].unique()
+        return [{'name': indicator} for indicator in indicators]
+    except Exception as e:
+        st.error(f"Failed to load indicators from CSV: {e}")
+        return []
 
 def load_csv_fallback_categories():
     """Generate categories data from CSV"""
     landscape_data = load_csv_data()
     if not landscape_data.empty:
-        categories = landscape_data['Category'].unique()
+        categories = landscape_data['category'].unique()
         return pd.DataFrame({
             'category_id': range(1, len(categories) + 1),
             'cat_name': categories
@@ -275,16 +278,16 @@ def generate_descriptive_statistics(data, category=None):
         return {}
     
     if category:
-        data = data[data['Category'] == category]
+        data = data[data['category'] == category]
     
     stats = {}
     
-    # Convert Response to numeric where possible
-    numeric_responses = pd.to_numeric(data['Response'], errors='coerce')
+    # Convert response to numeric where possible
+    numeric_responses = pd.to_numeric(data['response'], errors='coerce')
     numeric_data = data[numeric_responses.notna()]
     
     if not numeric_data.empty:
-        numeric_values = pd.to_numeric(numeric_data['Response'])
+        numeric_values = pd.to_numeric(numeric_data['response'])
         stats['numeric'] = {
             'count': len(numeric_values),
             'mean': numeric_values.mean(),
@@ -297,9 +300,9 @@ def generate_descriptive_statistics(data, category=None):
         }
     
     # Categorical responses
-    categorical_data = data[pd.to_numeric(data['Response'], errors='coerce').isna()]
+    categorical_data = data[pd.to_numeric(data['response'], errors='coerce').isna()]
     if not categorical_data.empty:
-        value_counts = categorical_data['Response'].value_counts()
+        value_counts = categorical_data['response'].value_counts()
         stats['categorical'] = {
             'unique_values': len(value_counts),
             'most_common': value_counts.head(5).to_dict(),
@@ -308,9 +311,9 @@ def generate_descriptive_statistics(data, category=None):
     
     # Country coverage
     stats['coverage'] = {
-        'countries_with_data': data['Country'].nunique(),
-        'total_indicators': data['Indicator'].nunique(),
-        'response_rate': len(data) / (data['Country'].nunique() * data['Indicator'].nunique()) if data['Indicator'].nunique() > 0 else 0
+        'countries_with_data': data['country'].nunique(),
+        'total_indicators': data['indicator'].nunique(),
+        'response_rate': len(data) / (data['country'].nunique() * data['indicator'].nunique()) if data['indicator'].nunique() > 0 else 0
     }
     
     return stats
@@ -324,13 +327,13 @@ def load_health_data():
     
     # Filter for health-related categories and convert to compatible format
     health_categories = ['Population and Economy', 'Mortality per 100 000 population', 'Mortality per 1000 live births']
-    health_data = landscape_data[landscape_data['Category'].isin(health_categories)]
+    health_data = landscape_data[landscape_data['category'].isin(health_categories)]
     
     # Pivot to create a more analysis-friendly format
     pivoted = health_data.pivot_table(
-        index=['Country'], 
-        columns=['Indicator'], 
-        values='Response', 
+        index=['country'], 
+        columns=['indicator'], 
+        values='response', 
         aggfunc='first'
     ).reset_index()
     
@@ -346,13 +349,13 @@ def load_vaccination_data():
     if landscape_data.empty:
         return pd.DataFrame()
     
-    vaccination_data = landscape_data[landscape_data['Category'] == 'Vaccination']
+    vaccination_data = landscape_data[landscape_data['category'] == 'Vaccination']
     
     # Convert to analysis format
     pivoted = vaccination_data.pivot_table(
-        index=['Country'], 
-        columns=['Indicator'], 
-        values='Response', 
+        index=['country'], 
+        columns=['indicator'], 
+        values='response', 
         aggfunc='first'
     ).reset_index()
     
@@ -372,13 +375,13 @@ def load_surveillance_data():
         'Virological surveillance'
     ]
     
-    surveillance_data = landscape_data[landscape_data['Category'].isin(surveillance_categories)]
+    surveillance_data = landscape_data[landscape_data['category'].isin(surveillance_categories)]
     
     # Convert to analysis format
     pivoted = surveillance_data.pivot_table(
-        index=['Country'], 
-        columns=['Indicator'], 
-        values='Response', 
+        index=['country'], 
+        columns=['indicator'], 
+        values='response', 
         aggfunc='first'
     ).reset_index()
     
@@ -581,10 +584,17 @@ def generate_sample_influenza_data():
 
 # Main application
 def main():
-    # Header
+    # WHO Logo and Header
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        try:
+            st.image("assets/who_logo.png", width=150)
+        except FileNotFoundError:
+            st.write("🌍")  # Fallback emoji if logo not found
+    
     st.markdown("""
     <div class="main-header">
-        <h1>🌍 WHO AFRO Influenza Landscape Survey Dashboard</h1>
+        <h1>WHO AFRO Influenza Landscape Survey Dashboard</h1>
         <p>Country Profiles and Respiratory Surveillance Analysis</p>
         <p>Survey Period: 2023 - 2024</p>
     </div>
@@ -603,7 +613,7 @@ def main():
         return
     
     # Category filter
-    available_categories = sorted(landscape_data['Category'].unique())
+    available_categories = sorted(landscape_data['category'].unique())
     selected_categories = st.sidebar.multiselect(
         "Select Categories", 
         available_categories, 
@@ -611,7 +621,7 @@ def main():
     )
     
     # Country filter
-    available_countries = sorted(landscape_data['Country'].unique())
+    available_countries = sorted(landscape_data['country'].unique())
     selected_countries = st.sidebar.multiselect(
         "Select Countries", 
         available_countries,
@@ -623,147 +633,609 @@ def main():
     
     # Apply category filter only if categories are selected
     if selected_categories:
-        filtered_data = filtered_data[filtered_data['Category'].isin(selected_categories)]
+        filtered_data = filtered_data[filtered_data['category'].isin(selected_categories)]
     
     # Apply country filter only if countries are selected  
     if selected_countries:
-        filtered_data = filtered_data[filtered_data['Country'].isin(selected_countries)]
+        filtered_data = filtered_data[filtered_data['country'].isin(selected_countries)]
     
-    # Data Quality Overview
-    st.markdown('<div class="section-header"><h2>📊 Data Overview</h2></div>', unsafe_allow_html=True)
+    # Regional Demographics and Economic Overview
+    st.markdown('<div class="section-header"><h2>🌍 Regional Demographics and Economic Overview</h2></div>', unsafe_allow_html=True)
     
-    col1, col2, col3, col4 = st.columns(4)
+    # Filter data for demographic and economic categories
+    demographic_categories = ['Population and Economy', 'Mortality per 100 000 population', 'Mortality per 1000 live births']
+    demographic_data = landscape_data[landscape_data['category'].isin(demographic_categories)]
+    
+    # Calculate demographic metrics
+    total_countries = landscape_data['country'].nunique()
+    
+    # Extract specific indicators for calculations
+    population_data = demographic_data[demographic_data['indicator'].str.contains('Population', case=False, na=False)]
+    health_expenditure_data = demographic_data[demographic_data['indicator'].str.contains('Total Health Expenditure|Health expenditure|health spending', case=False, na=False)]
+    life_expectancy_data = demographic_data[demographic_data['indicator'].str.contains('Life expectancy', case=False, na=False)]
+    mortality_100k_data = demographic_data[demographic_data['category'] == 'Mortality per 100 000 population']
+    mortality_1000_data = demographic_data[demographic_data['category'] == 'Mortality per 1000 live births']
+    
+    # Calculate metrics with fallbacks
+    try:
+        total_population = pd.to_numeric(population_data['response'], errors='coerce').sum()
+        total_population = f"{total_population/1000000:.1f}M" if total_population > 0 else "Data pending"
+    except:
+        total_population = "Data pending"
+    
+    try:
+        health_expenditure = pd.to_numeric(health_expenditure_data['response'], errors='coerce').sum()
+        health_expenditure = f"${health_expenditure/1000000:.1f}M" if health_expenditure > 0 else "Data pending"
+    except:
+        health_expenditure = "Data pending"
+    
+    try:
+        avg_life_expectancy = pd.to_numeric(life_expectancy_data['response'], errors='coerce').mean()
+        avg_life_expectancy = f"{avg_life_expectancy:.1f} years" if not pd.isna(avg_life_expectancy) else "Data pending"
+    except:
+        avg_life_expectancy = "Data pending"
+    
+    try:
+        avg_mortality_100k = pd.to_numeric(mortality_100k_data['response'], errors='coerce').mean()
+        avg_mortality_100k = f"{avg_mortality_100k:.1f}/100k" if not pd.isna(avg_mortality_100k) else "Data pending"
+    except:
+        avg_mortality_100k = "Data pending"
+    
+    try:
+        avg_mortality_1000 = pd.to_numeric(mortality_1000_data['response'], errors='coerce').mean()
+        avg_mortality_1000 = f"{avg_mortality_1000:.1f}/1000" if not pd.isna(avg_mortality_1000) else "Data pending"
+    except:
+        avg_mortality_1000 = "Data pending"
+    
+    # Display demographic overview in styled cards
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        total_countries = landscape_data['Country'].nunique()
-        st.metric("Total Countries", total_countries)
+        st.markdown("""
+        <div class="metric-card">
+            <h3 style="color: #0093D5; margin-bottom: 15px;">🌍 Regional Coverage</h3>
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 24px; margin-right: 10px;">🏛️</span>
+                <div>
+                    <strong style="font-size: 18px; color: #003C71;">47 Countries</strong><br>
+                    <small style="color: #666;">Surveyed Countries</small>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 24px; margin-right: 10px;">👥</span>
+                <div>
+                    <strong style="font-size: 18px; color: #003C71;">{}</strong><br>
+                    <small style="color: #666;">Total Population</small>
+                </div>
+            </div>
+        </div>
+        """.format(total_population), unsafe_allow_html=True)
     
     with col2:
-        total_categories = landscape_data['Category'].nunique()
-        st.metric("Survey Categories", total_categories)
+        st.markdown("""
+        <div class="metric-card">
+            <h3 style="color: #0093D5; margin-bottom: 15px;">💰 Economic Indicators</h3>
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 24px; margin-right: 10px;">🏥</span>
+                <div>
+                    <strong style="font-size: 18px; color: #003C71;">{}</strong><br>
+                    <small style="color: #666;">Health Expenditure</small>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 24px; margin-right: 10px;">❤️</span>
+                <div>
+                    <strong style="font-size: 18px; color: #003C71;">{}</strong><br>
+                    <small style="color: #666;">Life Expectancy</small>
+                </div>
+            </div>
+        </div>
+        """.format(health_expenditure, avg_life_expectancy), unsafe_allow_html=True)
     
     with col3:
-        total_indicators = landscape_data['Indicator'].nunique()
-        st.metric("Total Indicators", total_indicators)
+        st.markdown("""
+        <div class="metric-card">
+            <h3 style="color: #0093D5; margin-bottom: 15px;">⚕️ Health Outcomes</h3>
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 24px; margin-right: 10px;">📊</span>
+                <div>
+                    <strong style="font-size: 18px; color: #003C71;">{}</strong><br>
+                    <small style="color: #666;">Mortality per 100k pop</small>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 24px; margin-right: 10px;">👶</span>
+                <div>
+                    <strong style="font-size: 18px; color: #003C71;">{}</strong><br>
+                    <small style="color: #666;">Mortality per 1000 births</small>
+                </div>
+            </div>
+        </div>
+        """.format(avg_mortality_100k, avg_mortality_1000), unsafe_allow_html=True)
     
-    with col4:
-        total_responses = len(landscape_data)
-        st.metric("Total Responses", f"{total_responses:,}")
-    
-    # Category-based Analysis
+    # Surveillance (SARI & ILI): Regional Overview
     st.markdown("---")
-    st.markdown('<div class="section-header"><h2>📈 Category-Based Analysis</h2></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header"><h2>🗺️ Surveillance (SARI & ILI): Regional Overview</h2></div>', unsafe_allow_html=True)
     
-    # Category selector for detailed analysis
-    selected_category = st.selectbox(
-        "Select Category for Detailed Analysis",
-        available_categories
-    )
     
-    if selected_category:
-        category_data = landscape_data[landscape_data['Category'] == selected_category]
+    # Filter data for SARI and ILI surveillance categories
+    surveillance_categories = [
+        'Severe acute respiratory infection (SARI) surveillance',
+        'Influenza like Illness (ILI) Surveillance'
+    ]
+    surveillance_data = landscape_data[landscape_data['category'].isin(surveillance_categories)]
+    
+    if not surveillance_data.empty:
+        # Create three columns: Map Key on far left, Map in center, Table on right
+        col_key, col_map, col_table = st.columns([1, 3, 2])
         
-        # Category statistics
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.subheader(f"📊 {selected_category} - Descriptive Statistics")
-            stats = generate_descriptive_statistics(category_data)
+        with col_map:
+            st.subheader("🗺️ ILI/SARI Surveillance Implementation Map")
             
-            if 'numeric' in stats:
-                numeric_stats = stats['numeric']
-                st.write("**Numeric Indicators:**")
-                stats_df = pd.DataFrame({
-                    'Statistic': ['Count', 'Mean', 'Median', 'Std Dev', 'Min', 'Max', 'Q25', 'Q75'],
-                    'Value': [
-                        numeric_stats['count'],
-                        f"{numeric_stats['mean']:.2f}" if not pd.isna(numeric_stats['mean']) else 'N/A',
-                        f"{numeric_stats['median']:.2f}" if not pd.isna(numeric_stats['median']) else 'N/A',
-                        f"{numeric_stats['std']:.2f}" if not pd.isna(numeric_stats['std']) else 'N/A',
-                        f"{numeric_stats['min']:.2f}" if not pd.isna(numeric_stats['min']) else 'N/A',
-                        f"{numeric_stats['max']:.2f}" if not pd.isna(numeric_stats['max']) else 'N/A',
-                        f"{numeric_stats['q25']:.2f}" if not pd.isna(numeric_stats['q25']) else 'N/A',
-                        f"{numeric_stats['q75']:.2f}" if not pd.isna(numeric_stats['q75']) else 'N/A'
-                    ]
-                })
-                st.dataframe(stats_df, use_container_width=True)
+            # Prepare data for map visualization
+            # Group by country and get key surveillance indicators
+            map_data = surveillance_data.groupby(['country', 'category', 'indicator', 'response']).size().reset_index(name='count')
             
-            if 'categorical' in stats:
-                categorical_stats = stats['categorical']
-                st.write("**Categorical Responses:**")
-                st.write(f"- Unique values: {categorical_stats['unique_values']}")
-                st.write(f"- Total responses: {categorical_stats['total_responses']}")
+            # Create a summary for each country showing their surveillance status
+            country_summary = []
+            for country in map_data['country'].unique():
+                country_data = map_data[map_data['country'] == country]
                 
-                st.write("**Most common responses:**")
-                for value, count in categorical_stats['most_common'].items():
-                    st.write(f"- {value}: {count}")
+                # Get SARI and ILI status
+                sari_data = country_data[country_data['category'] == 'Severe acute respiratory infection (SARI) surveillance']
+                ili_data = country_data[country_data['category'] == 'Influenza like Illness (ILI) Surveillance']
+                
+                # Determine surveillance status based on responses
+                sari_status = "Implemented" if len(sari_data) > 0 else "Not Reported"
+                ili_status = "Implemented" if len(ili_data) > 0 else "Not Reported"
+                
+                # Create an overall status
+                if sari_status == "Implemented" and ili_status == "Implemented":
+                    overall_status = "Both SARI & ILI"
+                elif sari_status == "Implemented":
+                    overall_status = "SARI Only"
+                elif ili_status == "Implemented":
+                    overall_status = "ILI Only"
+                else:
+                    overall_status = "Limited/None"
+                
+                # Calculate total sentinel sites for this country
+                # Get SARI sentinel sites
+                sari_sentinel_data = surveillance_data[
+                    (surveillance_data['country'] == country) & 
+                    (surveillance_data['indicator'] == 'Number of SARI sentinel surveillance sites')
+                ]
+                sari_sites = 0
+                if not sari_sentinel_data.empty:
+                    for response in sari_sentinel_data['response']:
+                        try:
+                            # Handle numeric responses and convert to int
+                            if pd.notna(response) and str(response).lower() not in ['no response', 'no', 'none', 'nan']:
+                                sari_sites += int(float(str(response)))
+                        except (ValueError, TypeError):
+                            pass  # Skip non-numeric responses
+                
+                # Get ILI sentinel sites  
+                ili_sentinel_data = surveillance_data[
+                    (surveillance_data['country'] == country) & 
+                    (surveillance_data['indicator'] == 'Numbers of ILI sentinel surveillance sites')
+                ]
+                ili_sites = 0
+                if not ili_sentinel_data.empty:
+                    for response in ili_sentinel_data['response']:
+                        try:
+                            # Handle numeric responses and convert to int
+                            if pd.notna(response) and str(response).lower() not in ['no response', 'no', 'none', 'nan']:
+                                ili_sites += int(float(str(response)))
+                        except (ValueError, TypeError):
+                            pass  # Skip non-numeric responses
+                
+                total_sentinel_sites = sari_sites + ili_sites
+                
+                country_summary.append({
+                    'country': country,
+                    'sari_status': sari_status,
+                    'ili_status': ili_status,
+                    'overall_status': overall_status,
+                    'total_sentinel_sites': total_sentinel_sites,
+                    'sari_sites': sari_sites,
+                    'ili_sites': ili_sites
+                })
+            
+            country_df = pd.DataFrame(country_summary)
+            
+            # Create choropleth map using African country data
+            # WHO GIS Guidelines: Use clear, accessible colors and provide legend
+            color_map = {
+                "Both SARI & ILI": "#0093D5",      # WHO Blue
+                "SARI Only": "#4CAF50",            # Green  
+                "ILI Only": "#FF9800",             # Orange
+                "Limited/None": "#E0E0E0"          # Light gray
+            }
+            
+            # Create the map
+            fig_map = px.choropleth(
+                country_df,
+                locations='country',
+                locationmode='country names',
+                color='overall_status',
+                hover_name='country',
+                hover_data={
+                    'sari_status': True,
+                    'ili_status': True,
+                    'total_sentinel_sites': True,
+                    'sari_sites': True,
+                    'ili_sites': True,
+                    'overall_status': False
+                },
+                color_discrete_map=color_map,
+                title="WHO AFRO: SARI & ILI Surveillance Implementation Status",
+                labels={'overall_status': 'Surveillance Status'}
+            )
+            
+            # Update layout according to WHO GIS Guidelines
+            fig_map.update_layout(
+                font={"family": "Montserrat", "size": 12},
+                title={
+                    "font": {"size": 16, "color": "#003C71"},
+                    "x": 0.5,
+                    "xanchor": 'center'
+                },
+                geo={
+                    'scope': 'africa',
+                    'projection_type': 'natural earth',
+                    'showframe': False,
+                    'showcoastlines': True,
+                    'coastlinecolor': "#CCCCCC",
+                    'showland': True,
+                    'landcolor': '#F5F5F5',
+                    'bgcolor': 'white'
+                },
+                height=500,
+                legend={
+                    "orientation": "h",
+                    "yanchor": "bottom",
+                    "y": -0.1,
+                    "xanchor": "center",
+                    "x": 0.5,
+                    "bgcolor": "rgba(255,255,255,0.8)",
+                    "bordercolor": "#CCCCCC",
+                    "borderwidth": 1
+                }
+            )
+            
+            # Custom hover template
+            fig_map.update_traces(
+                hovertemplate='<b>%{hovertext}</b><br>' +
+                             'SARI Status: %{customdata[0]}<br>' +
+                             'ILI Status: %{customdata[1]}<br>' +
+                             'Total Sentinel Sites: %{customdata[2]}<br>' +
+                             'SARI Sites: %{customdata[3]}<br>' +
+                             'ILI Sites: %{customdata[4]}<br>' +
+                             '<extra></extra>'
+            )
+            
+            st.plotly_chart(fig_map, use_container_width=True)
         
-        with col2:
-            st.subheader(f"🗺️ {selected_category} - Country Coverage")
+        with col_key:
+            # Map Legend and Key Information - Vertical layout on far left
+            st.markdown("""
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #0093D5; margin-top: 60px;">
+                <h4 style="color: #003C71; margin-top: 0; margin-bottom: 15px; text-align: center;">🗝️ Map Key</h4>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: #0093D5; font-size: 16px;">●</span> 
+                        <span style="font-size: 12px;">Both SARI & ILI</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: #4CAF50; font-size: 16px;">●</span> 
+                        <span style="font-size: 12px;">SARI Only</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: #FF9800; font-size: 16px;">●</span> 
+                        <span style="font-size: 12px;">ILI Only</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: #E0E0E0; font-size: 16px;">●</span> 
+                        <span style="font-size: 12px;">Limited/No Data</span>
+                    </div>
+                </div>
+                <p style="margin-bottom: 0; font-size: 10px; color: #666; margin-top: 12px; text-align: center;">
+                    <i>WHO GIS Guidelines</i>
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
             
-            # Country coverage visualization
-            country_coverage = category_data.groupby('Country').size().reset_index(name='Indicator_Count')
+        with col_table:
+            st.subheader("📊 Surveillance Implementation Summary")
             
-            if not country_coverage.empty:
-                fig_coverage = px.bar(
-                    country_coverage.head(20),  # Show top 20 countries
-                    x='Country',
-                    y='Indicator_Count',
-                    title=f"Number of Indicators per Country - {selected_category}",
-                    color='Indicator_Count',
-                    color_continuous_scale='Blues'
+            # Calculate comprehensive surveillance metrics
+            
+            # 1. Total Number of Countries with Surveillance (ILI or SARI)
+            # Look for "Type of" surveillance indicators
+            sari_type_data = surveillance_data[
+                (surveillance_data['indicator'] == 'Type of SARI surveillance') &
+                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+            ]
+            ili_type_data = surveillance_data[
+                (surveillance_data['indicator'] == 'Type of ILI surveillance') &
+                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+            ]
+            total_countries_with_surveillance = len(set(sari_type_data['country'].unique()) | set(ili_type_data['country'].unique()))
+            
+            # 2. Total Number of SARI sites
+            sari_sites_data = surveillance_data[
+                surveillance_data['indicator'] == 'Number of SARI sentinel surveillance sites'
+            ]
+            total_sari_sites = 0
+            for response in sari_sites_data['response']:
+                try:
+                    if pd.notna(response) and str(response).lower() not in ['n/a', 'no', 'non', 'no response', 'nan']:
+                        total_sari_sites += int(float(str(response)))
+                except (ValueError, TypeError):
+                    pass
+            
+            # 3. Total Number of ILI sites
+            ili_sites_data = surveillance_data[
+                surveillance_data['indicator'] == 'Numbers of ILI sentinel surveillance sites'
+            ]
+            total_ili_sites = 0
+            for response in ili_sites_data['response']:
+                try:
+                    if pd.notna(response) and str(response).lower() not in ['n/a', 'no', 'non', 'no response', 'nan']:
+                        total_ili_sites += int(float(str(response)))
+                except (ValueError, TypeError):
+                    pass
+            
+            # 4. Total Yes responses to ILI laboratory confirmation
+            ili_lab_confirmation = surveillance_data[
+                (surveillance_data['indicator'] == 'Is laboratory confirmation sought for ILI sentinel surveillance') &
+                (surveillance_data['response'].str.lower() == 'yes')
+            ]
+            total_ili_lab_yes = len(ili_lab_confirmation)
+            
+            # 5. Total countries using case definitions for surveillance
+            sari_case_def = surveillance_data[
+                (surveillance_data['indicator'] == 'Surveillance case definition used for SARI case ascertainment.') &
+                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+            ]
+            ili_case_def = surveillance_data[
+                (surveillance_data['indicator'] == 'Surveillance case definition used for ILI case ascertainment.') &
+                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+            ]
+            total_countries_case_def = len(set(sari_case_def['country'].unique()) | set(ili_case_def['country'].unique()))
+            
+            # 6. Countries with integrated surveillance for COVID-19 and Influenza
+            integrated_surveillance_data = landscape_data[
+                (landscape_data['category_id'] == 11) &
+                (landscape_data['indicator'] == 'Has the country integrated influenza and SARS-CoV-2 sentinel surveillance?') &
+                (landscape_data['response'].str.lower() == 'yes')
+            ]
+            total_countries_integrated = len(integrated_surveillance_data)
+            
+            # 7. Site type breakdown for SARI surveillance
+            sari_site_types = surveillance_data[
+                (surveillance_data['indicator'] == 'Sentinel sites involved in SARI surveillance.') &
+                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+            ]
+            site_type_counts = sari_site_types['response'].value_counts()
+            
+            # Display key metrics in a more comprehensive format
+            st.markdown("**Implementation Overview:**")
+            
+            # First row of metrics
+            metrics_row1_col1, metrics_row1_col2 = st.columns(2)
+            with metrics_row1_col1:
+                st.metric(
+                    "🏥 Countries with Sentinel Surveillance", 
+                    total_countries_with_surveillance,
+                    help="Countries with ILI or SARI surveillance (excluding N/A, No responses)"
                 )
-                fig_coverage.update_layout(
-                    height=400,
-                    xaxis_tickangle=-45,
-                    font=dict(family="Montserrat")
+            with metrics_row1_col2:
+                st.metric(
+                    "📋 Countries Using Case Definitions", 
+                    total_countries_case_def,
+                    help="Countries using case definitions for ILI or SARI surveillance"
                 )
-                st.plotly_chart(fig_coverage, use_container_width=True)
-    
-    # Cross-Category Analysis  
+            
+            # Second row of metrics
+            metrics_row2_col1, metrics_row2_col2 = st.columns(2)
+            with metrics_row2_col1:
+                st.metric(
+                    "🏢 Total SARI Sites", 
+                    total_sari_sites,
+                    help="Sum of all SARI sentinel surveillance sites"
+                )
+            with metrics_row2_col2:
+                st.metric(
+                    "🏥 Total ILI Sites", 
+                    total_ili_sites,
+                    help="Sum of all ILI sentinel surveillance sites"
+                )
+            
+            # Third row of metrics
+            metrics_row3_col1, metrics_row3_col2 = st.columns(2)
+            with metrics_row3_col1:
+                st.metric(
+                    "🔬 ILI Lab Confirmation (Yes)", 
+                    total_ili_lab_yes,
+                    help="Countries seeking laboratory confirmation for ILI surveillance"
+                )
+            with metrics_row3_col2:
+                st.metric(
+                    "🔗 Integrated COVID-19 & Influenza", 
+                    total_countries_integrated,
+                    help="Countries with integrated influenza and SARS-CoV-2 sentinel surveillance"
+                )
+            
+            st.markdown("---")
+            
+            # SARI Site Types Breakdown
+            if not site_type_counts.empty:
+                st.markdown("**🏢 SARI Site Types:**")
+                for site_type, count in site_type_counts.head(5).items():
+                    st.write(f"• **{site_type}**: {count} countries")
+            
+    else:
+        st.warning("No SARI or ILI surveillance data available in the dataset.")
+
+    # Surveillance Analytics Visualizations
     st.markdown("---")
-    st.markdown('<div class="section-header"><h2>🔗 Cross-Category Analysis</h2></div>', unsafe_allow_html=True)
     
-    # Category comparison
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("📊 Indicators per Category")
-        category_counts = landscape_data.groupby('Category')['Indicator'].nunique().reset_index()
-        category_counts = category_counts.sort_values('Indicator', ascending=False)
+    if not surveillance_data.empty:
+        # Create four columns for horizontal chart alignment
+        viz_col1, viz_col2, viz_col3, viz_col4 = st.columns(4)
         
-        fig_cat = px.bar(
-            category_counts,
-            x='Indicator',
-            y='Category',
-            orientation='h',
-            title="Number of Indicators by Category",
-            color='Indicator',
-            color_continuous_scale='Viridis'
-        )
-        fig_cat.update_layout(height=400, font=dict(family="Montserrat"))
-        st.plotly_chart(fig_cat, use_container_width=True)
-    
-    with col2:
-        st.subheader("🌍 Country Response Completeness")
-        country_completeness = landscape_data.groupby('Country').size().reset_index(name='Total_Responses')
-        country_completeness = country_completeness.sort_values('Total_Responses', ascending=False).head(15)
+        with viz_col1:
+            # Sunburst Chart: Surveillance Implementation Overview
+            # Prepare hierarchical data for sunburst chart
+            sunburst_data = []
+            
+            # Calculate surveillance type distribution for sunburst chart
+            sari_countries = surveillance_data[
+                (surveillance_data['category'] == 'Severe acute respiratory infection (SARI) surveillance') &
+                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+            ]['country'].nunique()
+            
+            ili_countries = surveillance_data[
+                (surveillance_data['category'] == 'Influenza like Illness (ILI) Surveillance') &
+                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+            ]['country'].nunique()
+            
+            # Create hierarchical sunburst data
+            sunburst_data = [
+                {
+                    'category': 'Surveillance',
+                    'type': 'SARI',
+                    'metric': 'Countries',
+                    'value': sari_countries,
+                    'path': ['Surveillance', 'SARI', 'Countries']
+                },
+                {
+                    'category': 'Surveillance',
+                    'type': 'SARI',
+                    'metric': 'Sites',
+                    'value': total_sari_sites,
+                    'path': ['Surveillance', 'SARI', 'Sites']
+                },
+                {
+                    'category': 'Surveillance',
+                    'type': 'ILI',
+                    'metric': 'Countries',
+                    'value': ili_countries,
+                    'path': ['Surveillance', 'ILI', 'Countries']
+                },
+                {
+                    'category': 'Surveillance',
+                    'type': 'ILI',
+                    'metric': 'Sites',
+                    'value': total_ili_sites,
+                    'path': ['Surveillance', 'ILI', 'Sites']
+                }
+            ]
+            
+            sunburst_df = pd.DataFrame(sunburst_data)
+            
+            # Create sunburst chart
+            fig_sunburst = px.sunburst(
+                sunburst_df,
+                path=[px.Constant('Surveillance'), 'type', 'metric'],
+                values='value',
+                title="Surveillance Overview",
+                color='type',
+                color_discrete_map={
+                    'SARI': '#0093D5',  # WHO Blue
+                    'ILI': '#4CAF50'    # Green
+                }
+            )
+            
+            # Update sunburst chart layout
+            fig_sunburst.update_layout(
+                font={"family": "Montserrat", "size": 10},
+                height=350,
+                title={
+                    "font": {"size": 12, "color": "#003C71"},
+                    "x": 0.5,
+                    "xanchor": 'center'
+                }
+            )
+            
+            st.plotly_chart(fig_sunburst, use_container_width=True)
         
-        fig_complete = px.bar(
-            country_completeness,
-            x='Country',
-            y='Total_Responses',
-            title="Total Survey Responses by Country (Top 15)",
-            color='Total_Responses',
-            color_continuous_scale='Oranges'
-        )
-        fig_complete.update_layout(
-            height=400,
-            xaxis_tickangle=-45,
-            font=dict(family="Montserrat")
-        )
-        st.plotly_chart(fig_complete, use_container_width=True)
-    
+        with viz_col2:
+            # 1. Surveillance Type Distribution
+            surveillance_type_data = surveillance_data.groupby('category')['country'].nunique().reset_index()
+            surveillance_type_data['category'] = surveillance_type_data['category'].str.replace(
+                'Severe acute respiratory infection (SARI) surveillance', 'SARI'
+            ).str.replace(
+                'Influenza like Illness (ILI) Surveillance', 'ILI'
+            )
+            
+            fig_donut1 = px.pie(
+                surveillance_type_data,
+                values='country',
+                names='category',
+                title="Countries by Type",
+                color_discrete_sequence=['#0093D5', '#4CAF50', '#FF9800'],
+                hole=0.4
+            )
+            fig_donut1.update_layout(
+                font={"family": "Montserrat", "size": 10},
+                height=350,
+                title={"font": {"size": 12, "color": "#003C71"}},
+                showlegend=True,
+                legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5}
+            )
+            st.plotly_chart(fig_donut1, use_container_width=True)
+            
+        with viz_col3:
+            # 2. Lab Confirmation Status
+            lab_confirmation_data = pd.DataFrame({
+                'status': ['With Lab Confirmation', 'Without Lab Confirmation'],
+                'count': [total_ili_lab_yes, max(0, surveillance_data['country'].nunique() - total_ili_lab_yes)]
+            })
+            
+            fig_donut2 = px.pie(
+                lab_confirmation_data,
+                values='count',
+                names='status',
+                title="Lab Confirmation",
+                color_discrete_sequence=['#0093D5', '#E0E0E0'],
+                hole=0.4
+            )
+            fig_donut2.update_layout(
+                font={"family": "Montserrat", "size": 10},
+                height=350,
+                title={"font": {"size": 12, "color": "#003C71"}},
+                showlegend=True,
+                legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5}
+            )
+            st.plotly_chart(fig_donut2, use_container_width=True)
+            
+        with viz_col4:
+            # 3. Case Definition Usage
+            case_def_data = pd.DataFrame({
+                'status': ['Using Case Definitions', 'Not Using Case Definitions'],
+                'count': [total_countries_case_def, max(0, surveillance_data['country'].nunique() - total_countries_case_def)]
+            })
+            
+            fig_donut3 = px.pie(
+                case_def_data,
+                values='count',
+                names='status',
+                title="Case Definitions",
+                color_discrete_sequence=['#4CAF50', '#E0E0E0'],
+                hole=0.4
+            )
+            fig_donut3.update_layout(
+                font={"family": "Montserrat", "size": 10},
+                height=350,
+                title={"font": {"size": 12, "color": "#003C71"}},
+                showlegend=True,
+                legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5}
+            )
+            st.plotly_chart(fig_donut3, use_container_width=True)
+
     # Response Analysis Table
     st.markdown("---")
     st.subheader("📋 Response Analysis by Category and Indicator")
@@ -771,7 +1243,7 @@ def main():
     # Category filter for the response analysis table
     selected_analysis_category = st.selectbox(
         "Select Category for Response Analysis",
-        options=['All Categories'] + sorted(landscape_data['Category'].unique()),
+        options=['All Categories'] + sorted(landscape_data['category'].unique()),
         key="response_analysis_category"
     )
     
@@ -779,21 +1251,21 @@ def main():
     if selected_analysis_category == 'All Categories':
         analysis_data = landscape_data.copy()
     else:
-        analysis_data = landscape_data[landscape_data['Category'] == selected_analysis_category]
+        analysis_data = landscape_data[landscape_data['category'] == selected_analysis_category]
     
     if not analysis_data.empty:
         # Group by Category, Indicator, Response and count countries
-        response_summary = analysis_data.groupby(['Category', 'Indicator', 'Response']).agg({
-            'Country': 'count'
+        response_summary = analysis_data.groupby(['category', 'indicator', 'response']).agg({
+            'country': 'count'
         }).reset_index()
         
         # Rename the count column
-        response_summary.rename(columns={'Country': '# of Countries Responded'}, inplace=True)
+        response_summary.rename(columns={'country': '# of Countries Responded'}, inplace=True)
         
         # Sort by indicator, then by response as requested
         response_summary = response_summary.sort_values([
-            'Indicator', 
-            'Response'
+            'indicator',
+            'response'
         ], ascending=[True, True])
         
         # Add alternating row colors based on indicator changes
@@ -802,33 +1274,14 @@ def main():
         color_index = 0
         
         for idx, row in response_summary.iterrows():
-            if current_indicator != row['Indicator']:
-                current_indicator = row['Indicator']
+            if current_indicator != row['indicator']:
+                current_indicator = row['indicator']
                 color_index = (color_index + 1) % 2
             
             if color_index == 0:
                 response_summary.at[idx, 'row_color'] = 'background-color: #f8f9fa;'  # Very light gray
             else:
                 response_summary.at[idx, 'row_color'] = 'background-color: #ffffff;'  # White
-        
-        # Display summary statistics
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            total_unique_responses = len(response_summary)
-            st.metric("Unique Response Types", total_unique_responses)
-        
-        with col2:
-            avg_countries_per_indicator = response_summary['# of Countries Responded'].mean()
-            st.metric("Avg Countries per Response", f"{avg_countries_per_indicator:.1f}")
-        
-        with col3:
-            max_countries = response_summary['# of Countries Responded'].max()
-            st.metric("Max Countries per Response", max_countries)
-        
-        with col4:
-            total_indicators = response_summary['Indicator'].nunique()
-            st.metric("Total Indicators", total_indicators)
         
         # Display the response analysis table
         st.markdown("**Response Analysis Table:**")
@@ -839,8 +1292,8 @@ def main():
         # Apply search filter
         if search_term:
             mask = (
-                response_summary['Indicator'].str.contains(search_term, case=False, na=False) |
-                response_summary['Response'].str.contains(search_term, case=False, na=False)
+                response_summary['indicator'].str.contains(search_term, case=False, na=False) |
+                response_summary['response'].str.contains(search_term, case=False, na=False)
             )
             filtered_summary = response_summary[mask]
         else:
@@ -897,9 +1350,9 @@ def main():
                 use_container_width=True,
                 height=400,
                 column_config={
-                    "Category": st.column_config.TextColumn("Category", width="medium"),
-                    "Indicator": st.column_config.TextColumn("Indicator", width="large"),
-                    "Response": st.column_config.TextColumn("Response", width="medium"),
+                    "Category": st.column_config.TextColumn("category", width="medium"),
+                    "Indicator": st.column_config.TextColumn("indicator", width="large"),
+                    "Response": st.column_config.TextColumn("response", width="medium"),
                     "# of Countries Responded": st.column_config.NumberColumn(
                         "# of Countries",
                         help="Number of countries that provided this response",
@@ -915,9 +1368,9 @@ def main():
                 use_container_width=True,
                 height=400,
                 column_config={
-                    "Category": st.column_config.TextColumn("Category", width="medium"),
-                    "Indicator": st.column_config.TextColumn("Indicator", width="large"),
-                    "Response": st.column_config.TextColumn("Response", width="medium"),
+                    "Category": st.column_config.TextColumn("category", width="medium"),
+                    "Indicator": st.column_config.TextColumn("indicator", width="large"),
+                    "Response": st.column_config.TextColumn("response", width="medium"),
                     "# of Countries Responded": st.column_config.NumberColumn(
                         "# of Countries",
                         help="Number of countries that provided this response",
@@ -935,48 +1388,6 @@ def main():
             file_name=f"response_analysis_{selected_analysis_category.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
-        
-        # Additional insights
-        if not filtered_summary.empty:
-            st.markdown("---")
-            st.subheader("📊 Response Insights")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Most common responses across all indicators
-                st.write("**Most Common Responses (All Indicators):**")
-                most_common_responses = filtered_summary.groupby('Response')['# of Countries Responded'].sum().sort_values(ascending=False).head(10)
-                
-                for response, count in most_common_responses.items():
-                    st.write(f"• **{response}**: {count} country responses")
-            
-            with col2:
-                # Indicators with highest response diversity
-                st.write("**Indicators with Most Response Diversity:**")
-                response_diversity = filtered_summary.groupby('Indicator').size().sort_values(ascending=False).head(10)
-                
-                for indicator, diversity in response_diversity.items():
-                    st.write(f"• **{indicator[:50]}{'...' if len(indicator) > 50 else ''}**: {diversity} different responses")
-        
-        # Visualization of response distribution
-        if len(filtered_summary) > 0:
-            st.markdown("---")
-            st.subheader("📈 Response Distribution Visualization")
-            
-            # Create a sunburst chart showing Category -> Indicator -> Response distribution
-            if len(filtered_summary) <= 100:  # Only show for reasonable data sizes
-                fig_sunburst = px.sunburst(
-                    filtered_summary,
-                    path=['Category', 'Indicator', 'Response'],
-                    values='# of Countries Responded',
-                    title="Response Distribution Hierarchy (Category → Indicator → Response)",
-                    height=600
-                )
-                fig_sunburst.update_layout(font=dict(family="Montserrat"))
-                st.plotly_chart(fig_sunburst, use_container_width=True)
-            else:
-                st.info("📊 Visualization hidden for large datasets. Use filters to reduce data size for visualization.")
     
     else:
         st.warning("No data available for the selected category.")
@@ -994,31 +1405,40 @@ def main():
     with col1:
         filter_country = st.selectbox(
             "Filter by Country",
-            ['All'] + sorted(landscape_data['Country'].unique())
+            ['All'] + sorted(landscape_data['country'].unique())
         )
     
     with col2:
         filter_category = st.selectbox(
             "Filter by Category", 
-            ['All'] + sorted(landscape_data['Category'].unique())
+            ['All'] + sorted(landscape_data['category'].unique())
         )
     
     with col3:
-        search_indicator = st.text_input("Search Indicators", "")
+        # Get available indicators based on current filters
+        temp_data = landscape_data.copy()
+        if filter_country != 'All':
+            temp_data = temp_data[temp_data['country'] == filter_country]
+        if filter_category != 'All':
+            temp_data = temp_data[temp_data['category'] == filter_category]
+        
+        available_indicators = ['All'] + sorted(temp_data['indicator'].unique())
+        selected_indicator = st.selectbox(
+            "Select Indicator",
+            available_indicators
+        )
     
     # Apply filters to data
     display_data = landscape_data.copy()
     
     if filter_country != 'All':
-        display_data = display_data[display_data['Country'] == filter_country]
+        display_data = display_data[display_data['country'] == filter_country]
     
     if filter_category != 'All':
-        display_data = display_data[display_data['Category'] == filter_category]
-    
-    if search_indicator:
-        display_data = display_data[
-            display_data['Indicator'].str.contains(search_indicator, case=False, na=False)
-        ]
+        display_data = display_data[display_data['category'] == filter_category]
+
+    if selected_indicator != 'All':
+        display_data = display_data[display_data['indicator'] == selected_indicator]
     
     # Display filtered data
     st.dataframe(
@@ -1050,20 +1470,20 @@ def main():
     
     # Limitations and Notes
     st.markdown("---")
-    st.markdown('<div class="section-header"><h2>⚠️ Data Limitations & Notes</h2></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header"><h2>Sources and References</h2></div>', unsafe_allow_html=True)
     
     st.warning("""
-    **Current Data Limitations:**
-    
-    1. **Temporal Analysis**: The current dataset appears to be cross-sectional (single time point), limiting trend analysis capabilities.
-    
-    2. **Data Types**: Mixed data types (numeric and categorical) in the Response field require careful handling for statistical analysis.
-    
-    3. **Missing Values**: Some countries may have incomplete responses across categories, affecting comparative analysis.
-    
-    4. **Standardization**: Response formats vary across indicators, making direct numerical comparisons challenging.
-    
-    5. **Indicator Definitions**: Without metadata about indicator definitions and measurement units, interpretation may be limited.
+    **Sources and References:**
+
+    1. **Population Data**: 1.https://data.worldbank.org/indicator/SP.POP.TOTL
+
+    2. **List of Countries**: https://data.who.int/countries/
+
+    3. **Life Expectancy**: https://data.worldbank.org/indicator/SP.DYN.LE00.IN?view=chart
+               
+    4. **Indicator Metadata Registry List**: https://www.who.int/data/gho/indicator-metadata-registry/imr-details/3130
+               
+    5. **Mortality Rate data**: https://data.who.int/indicators/i/E3CAF2B/2322814.
     """)
     
     # Database Connection Status
@@ -1098,24 +1518,6 @@ def main():
             st.warning("⚠️ **Database Connection**: Unavailable")
             st.info("📁 **Source**: CSV Files (Static Data)")
             st.write("**Fallback Mode**: Using local CSV data from /data folder")
-    
-    # with col2:
-    #     st.subheader("📈 Data Statistics")
-        
-    #     # Display current data statistics
-    #     total_records = len(landscape_data)
-    #     total_countries = landscape_data['Country'].nunique()
-    #     total_categories = landscape_data['Category'].nunique() 
-    #     total_indicators = landscape_data['Indicator'].nunique()
-        
-    #     st.write(f"**Total Records**: {total_records:,}")
-    #     st.write(f"**Countries**: {total_countries}")
-    #     st.write(f"**Categories**: {total_categories}")
-    #     st.write(f"**Indicators**: {total_indicators}")
-        
-    #     # Data freshness
-    #     st.write(f"**Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    #     st.write(f"**Session ID**: {st.session_state.get('session_id', 'Not available')}")
 
 if __name__ == "__main__":
     main()
