@@ -16,8 +16,7 @@ warnings.filterwarnings('ignore')
 st.set_page_config(
     page_title="WHO AFRO Influenza Landscape Survey",
     page_icon="assets/who_logo.png",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 # Custom CSS for WHO styling
@@ -42,10 +41,6 @@ st.markdown("""
         border-radius: 0.5rem;
         border-left: 4px solid #0093D5;
         margin-bottom: 1rem;
-    }
-    
-    .sidebar .sidebar-content {
-        background-color: #003C71;
     }
     
     .stSelectbox > div > div {
@@ -600,54 +595,19 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # Sidebar filters
-    st.sidebar.markdown("### 🔧 Dashboard Filters")
-    
     # Load core data
     landscape_data = load_landscape_survey_data()
-    countries_data = load_countries_data()
-    categories_data = load_indicator_categories_data()
     
     if landscape_data.empty:
         st.error("No landscape survey data available. Please check your data source.")
         return
-    
-    # Category filter
-    available_categories = sorted(landscape_data['category'].unique())
-    selected_categories = st.sidebar.multiselect(
-        "Select Categories", 
-        available_categories, 
-        default=[]  # No categories selected by default
-    )
-    
-    # Country filter
-    available_countries = sorted(landscape_data['country'].unique())
-    selected_countries = st.sidebar.multiselect(
-        "Select Countries", 
-        available_countries,
-        default=[]  # No countries selected by default
-    )
-    
-    # Apply filters
-    filtered_data = landscape_data.copy()
-    
-    # Apply category filter only if categories are selected
-    if selected_categories:
-        filtered_data = filtered_data[filtered_data['category'].isin(selected_categories)]
-    
-    # Apply country filter only if countries are selected  
-    if selected_countries:
-        filtered_data = filtered_data[filtered_data['country'].isin(selected_countries)]
-    
+
     # Regional Demographics and Economic Overview
     st.markdown('<div class="section-header"><h2>🌍 Regional Demographics and Economic Overview</h2></div>', unsafe_allow_html=True)
     
     # Filter data for demographic and economic categories
     demographic_categories = ['Population and Economy', 'Mortality per 100 000 population', 'Mortality per 1000 live births']
     demographic_data = landscape_data[landscape_data['category'].isin(demographic_categories)]
-    
-    # Calculate demographic metrics
-    total_countries = landscape_data['country'].nunique()
     
     # Extract specific indicators for calculations
     population_data = demographic_data[demographic_data['indicator'].str.contains('Population', case=False, na=False)]
@@ -2143,9 +2103,9 @@ def main():
     else:
         st.warning("No pandemic preparedness data available in the dataset.")
 
-    # Respiratory Pathogen Reporting and Usage
+    # Respiratory Pathogens Data Reporting and Usage
     st.markdown("---")
-    st.markdown('<div class="section-header"><h2>📊 Respiratory Pathogen Reporting and Usage</h2></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header"><h2>📊 Respiratory Pathogens Data Reporting and Usage</h2></div>', unsafe_allow_html=True)
     
     # Filter data for data reporting & use (category_id=8)
     reporting_data = landscape_data[landscape_data['category_id'] == 8]
@@ -2543,39 +2503,6 @@ def main():
                
     5. **Mortality Rate data**: https://data.who.int/indicators/i/E3CAF2B/2322814.
     """)
-    
-    # Database Connection Status
-    st.markdown("---")
-    st.markdown('<div class="section-header"><h2>🔌 System Information</h2></div>', unsafe_allow_html=True)
-    
-    # Check database connection status
-    engine = init_connection()
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("📊 Data Source")
-        if engine:
-            st.success("✅ **Database Connection**: Active")
-            st.info("📡 **Source**: PostgreSQL Database (emp_pip)")
-            
-            # Get database config for display
-            if hasattr(st, 'secrets') and 'database' in st.secrets:
-                db_host = st.secrets.database.get("DB_HOST", "Unknown")
-                db_name = st.secrets.database.get("DB_NAME", "Unknown") 
-                db_user = st.secrets.database.get("DB_USER", "Unknown")
-                db_port = st.secrets.database.get("DB_PORT", "5432")
-                
-                st.write(f"**Host**: {db_host}")
-                st.write(f"**Database**: {db_name}")
-                st.write(f"**User**: {db_user}")
-                st.write(f"**Port**: {db_port}")
-            else:
-                st.write("**Configuration**: Using fallback settings")
-        else:
-            st.warning("⚠️ **Database Connection**: Unavailable")
-            st.info("📁 **Source**: CSV Files (Static Data)")
-            st.write("**Fallback Mode**: Using local CSV data from /data folder")
 
 if __name__ == "__main__":
     main()
