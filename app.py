@@ -33,7 +33,6 @@ st.markdown("""
         text-align: center;
         margin-bottom: 2rem;
         position: relative;
-        position: relative;
     }
     
     .metric-card {
@@ -339,12 +338,9 @@ def generate_descriptive_statistics(data, category=None):
     
     # Country coverage
     stats['coverage'] = {
-        'countries_with_data': data['country'].nunique(),
-        'total_indicators': data['indicator'].nunique(),
-        'response_rate': len(data) / (data['country'].nunique() * data['indicator'].nunique()) if data['indicator'].nunique() > 0 else 0
-        'countries_with_data': data['country'].nunique(),
-        'total_indicators': data['indicator'].nunique(),
-        'response_rate': len(data) / (data['country'].nunique() * data['indicator'].nunique()) if data['indicator'].nunique() > 0 else 0
+        'countries_with_data': int(data['country'].nunique()),
+        'total_indicators': int(data['indicator'].nunique()),
+        'response_rate': (len(data) / (data['country'].nunique() * data['indicator'].nunique())) if data['indicator'].nunique() > 0 else 0
     }
     
     return stats
@@ -359,13 +355,9 @@ def load_health_data():
     # Filter for health-related categories and convert to compatible format
     health_categories = ['Population and Economy', 'Mortality per 100 000 population', 'Mortality per 1000 live births']
     health_data = landscape_data[landscape_data['category'].isin(health_categories)]
-    health_data = landscape_data[landscape_data['category'].isin(health_categories)]
     
     # Pivot to create a more analysis-friendly format
     pivoted = health_data.pivot_table(
-        index=['country'], 
-        columns=['indicator'], 
-        values='response', 
         index=['country'], 
         columns=['indicator'], 
         values='response', 
@@ -385,13 +377,9 @@ def load_vaccination_data():
         return pd.DataFrame()
     
     vaccination_data = landscape_data[landscape_data['category'] == 'Vaccination']
-    vaccination_data = landscape_data[landscape_data['category'] == 'Vaccination']
     
     # Convert to analysis format
     pivoted = vaccination_data.pivot_table(
-        index=['country'], 
-        columns=['indicator'], 
-        values='response', 
         index=['country'], 
         columns=['indicator'], 
         values='response', 
@@ -415,16 +403,12 @@ def load_surveillance_data():
     ]
     
     surveillance_data = landscape_data[landscape_data['category'].isin(surveillance_categories)]
-    surveillance_data = landscape_data[landscape_data['category'].isin(surveillance_categories)]
     
     # Convert to analysis format
     pivoted = surveillance_data.pivot_table(
         index=['country'], 
         columns=['indicator'], 
-        values='response', 
-        index=['country'], 
-        columns=['indicator'], 
-        values='response', 
+        values='response',  
         aggfunc='first'
     ).reset_index()
     
@@ -635,19 +619,9 @@ def main():
         except FileNotFoundError:
             st.write("🌍")  # Fallback emoji if logo not found
     
-    # WHO Logo and Header
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        try:
-            st.image("assets/who_logo.png", width=150)
-        except FileNotFoundError:
-            st.write("🌍")  # Fallback emoji if logo not found
-    
     st.markdown("""
     <div class="main-header">
         <h1>WHO AFRO Influenza Landscape Survey Dashboard</h1>
-        <h1>WHO AFRO Influenza Landscape Survey Dashboard</h1>
-        <p>Country Profiles and Respiratory Surveillance Analysis</p>
         <p>Survey Period: 2023 - 2024</p>
     </div>
     """, unsafe_allow_html=True)
@@ -727,46 +701,8 @@ def main():
             </div>
         </div>
         """.format(total_population), unsafe_allow_html=True)
-        st.markdown("""
-        <div class="metric-card">
-            <h3 style="color: #0093D5; margin-bottom: 15px;">🌍 Regional Coverage</h3>
-            <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                <span style="font-size: 24px; margin-right: 10px;">🏛️</span>
-                <div>
-                    <strong style="font-size: 18px; color: #003C71;">47 Countries</strong><br>
-                    <small style="color: #666;">Surveyed Countries</small>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                <span style="font-size: 24px; margin-right: 10px;">👥</span>
-                <div>
-                    <strong style="font-size: 18px; color: #003C71;">{}</strong><br>
-                    <small style="color: #666;">Total Population</small>
-                </div>
-            </div>
-        </div>
-        """.format(total_population), unsafe_allow_html=True)
     
     with col2:
-        st.markdown("""
-        <div class="metric-card">
-            <h3 style="color: #0093D5; margin-bottom: 15px;">💰 Economic Indicators</h3>
-            <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                <span style="font-size: 24px; margin-right: 10px;">🏥</span>
-                <div>
-                    <strong style="font-size: 18px; color: #003C71;">{}</strong><br>
-                    <small style="color: #666;">Health Expenditure</small>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                <span style="font-size: 24px; margin-right: 10px;">❤️</span>
-                <div>
-                    <strong style="font-size: 18px; color: #003C71;">{}</strong><br>
-                    <small style="color: #666;">Life Expectancy</small>
-                </div>
-            </div>
-        </div>
-        """.format(health_expenditure, avg_life_expectancy), unsafe_allow_html=True)
         st.markdown("""
         <div class="metric-card">
             <h3 style="color: #0093D5; margin-bottom: 15px;">💰 Economic Indicators</h3>
@@ -970,7 +906,7 @@ def main():
                              '<extra></extra>'
             )
             
-            st.plotly_chart(fig_map, use_container_width=True)
+            st.plotly_chart(fig_map, use_container_width=True, key="surveillance_detailed_map")
         
         with col_key:
             # Map Legend and Key Information - Vertical layout on far left
@@ -1215,435 +1151,7 @@ def main():
                 }
             )
             
-            st.plotly_chart(fig_sunburst, use_container_width=True)
-        st.markdown("""
-        <div class="metric-card">
-            <h3 style="color: #0093D5; margin-bottom: 15px;">⚕️ Health Outcomes</h3>
-            <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                <span style="font-size: 24px; margin-right: 10px;">📊</span>
-                <div>
-                    <strong style="font-size: 18px; color: #003C71;">{}</strong><br>
-                    <small style="color: #666;">Mortality per 100k pop</small>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                <span style="font-size: 24px; margin-right: 10px;">👶</span>
-                <div>
-                    <strong style="font-size: 18px; color: #003C71;">{}</strong><br>
-                    <small style="color: #666;">Mortality per 1000 births</small>
-                </div>
-            </div>
-        </div>
-        """.format(avg_mortality_100k, avg_mortality_1000), unsafe_allow_html=True)
-    
-    # Surveillance (SARI & ILI): Regional Overview
-    st.markdown("---")
-    st.markdown('<div class="section-header"><h2>🗺️ Surveillance (SARI & ILI): Regional Overview</h2></div>', unsafe_allow_html=True)
-    
-    
-    # Filter data for SARI and ILI surveillance categories
-    surveillance_categories = [
-        'Severe acute respiratory infection (SARI) surveillance',
-        'Influenza like Illness (ILI) Surveillance'
-    ]
-    surveillance_data = landscape_data[landscape_data['category'].isin(surveillance_categories)]
-    
-    if not surveillance_data.empty:
-        # Create three columns: Map Key on far left, Map in center, Table on right
-        col_key, col_map, col_table = st.columns([1, 3, 2])
-        
-        with col_map:
-            st.subheader("🗺️ ILI/SARI Surveillance Implementation Map")
-            
-            # Prepare data for map visualization
-            # Group by country and get key surveillance indicators
-            map_data = surveillance_data.groupby(['country', 'category', 'indicator', 'response']).size().reset_index(name='count')
-            
-            # Create a summary for each country showing their surveillance status
-            country_summary = []
-            for country in map_data['country'].unique():
-                country_data = map_data[map_data['country'] == country]
-                
-                # Get SARI and ILI status
-                sari_data = country_data[country_data['category'] == 'Severe acute respiratory infection (SARI) surveillance']
-                ili_data = country_data[country_data['category'] == 'Influenza like Illness (ILI) Surveillance']
-                
-                # Determine surveillance status based on responses
-                sari_status = "Implemented" if len(sari_data) > 0 else "Not Reported"
-                ili_status = "Implemented" if len(ili_data) > 0 else "Not Reported"
-                
-                # Create an overall status
-                if sari_status == "Implemented" and ili_status == "Implemented":
-                    overall_status = "Both SARI & ILI"
-                elif sari_status == "Implemented":
-                    overall_status = "SARI Only"
-                elif ili_status == "Implemented":
-                    overall_status = "ILI Only"
-                else:
-                    overall_status = "Limited/None"
-                
-                # Calculate total sentinel sites for this country
-                # Get SARI sentinel sites
-                sari_sentinel_data = surveillance_data[
-                    (surveillance_data['country'] == country) & 
-                    (surveillance_data['indicator'] == 'Number of SARI sentinel surveillance sites')
-                ]
-                sari_sites = 0
-                if not sari_sentinel_data.empty:
-                    for response in sari_sentinel_data['response']:
-                        try:
-                            # Handle numeric responses and convert to int
-                            if pd.notna(response) and str(response).lower() not in ['no response', 'no', 'none', 'nan']:
-                                sari_sites += int(float(str(response)))
-                        except (ValueError, TypeError):
-                            pass  # Skip non-numeric responses
-                
-                # Get ILI sentinel sites  
-                ili_sentinel_data = surveillance_data[
-                    (surveillance_data['country'] == country) & 
-                    (surveillance_data['indicator'] == 'Numbers of ILI sentinel surveillance sites')
-                ]
-                ili_sites = 0
-                if not ili_sentinel_data.empty:
-                    for response in ili_sentinel_data['response']:
-                        try:
-                            # Handle numeric responses and convert to int
-                            if pd.notna(response) and str(response).lower() not in ['no response', 'no', 'none', 'nan']:
-                                ili_sites += int(float(str(response)))
-                        except (ValueError, TypeError):
-                            pass  # Skip non-numeric responses
-                
-                total_sentinel_sites = sari_sites + ili_sites
-                
-                country_summary.append({
-                    'country': country,
-                    'sari_status': sari_status,
-                    'ili_status': ili_status,
-                    'overall_status': overall_status,
-                    'total_sentinel_sites': total_sentinel_sites,
-                    'sari_sites': sari_sites,
-                    'ili_sites': ili_sites
-                })
-            
-            country_df = pd.DataFrame(country_summary)
-            
-            # Create choropleth map using African country data
-            # WHO GIS Guidelines: Use clear, accessible colors and provide legend
-            color_map = {
-                "Both SARI & ILI": "#0093D5",      # WHO Blue
-                "SARI Only": "#4CAF50",            # Green  
-                "ILI Only": "#FF9800",             # Orange
-                "Limited/None": "#E0E0E0"          # Light gray
-            }
-            
-            # Create the map
-            fig_map = px.choropleth(
-                country_df,
-                locations='country',
-                locationmode='country names',
-                color='overall_status',
-                hover_name='country',
-                hover_data={
-                    'sari_status': True,
-                    'ili_status': True,
-                    'total_sentinel_sites': True,
-                    'sari_sites': True,
-                    'ili_sites': True,
-                    'overall_status': False
-                },
-                color_discrete_map=color_map,
-                title="WHO AFRO: SARI & ILI Surveillance Implementation Status",
-                labels={'overall_status': 'Surveillance Status'}
-            )
-            
-            # Update layout according to WHO GIS Guidelines
-            fig_map.update_layout(
-                font={"family": "Montserrat", "size": 12},
-                title={
-                    "font": {"size": 16, "color": "#003C71"},
-                    "x": 0.5,
-                    "xanchor": 'center'
-                },
-                geo={
-                    'scope': 'africa',
-                    'projection_type': 'natural earth',
-                    'showframe': False,
-                    'showcoastlines': True,
-                    'coastlinecolor': "#CCCCCC",
-                    'showland': True,
-                    'landcolor': '#F5F5F5',
-                    'bgcolor': 'white'
-                },
-                height=500,
-                legend={
-                    "orientation": "h",
-                    "yanchor": "bottom",
-                    "y": -0.1,
-                    "xanchor": "center",
-                    "x": 0.5,
-                    "bgcolor": "rgba(255,255,255,0.8)",
-                    "bordercolor": "#CCCCCC",
-                    "borderwidth": 1
-                }
-            )
-            
-            # Custom hover template
-            fig_map.update_traces(
-                hovertemplate='<b>%{hovertext}</b><br>' +
-                             'SARI Status: %{customdata[0]}<br>' +
-                             'ILI Status: %{customdata[1]}<br>' +
-                             'Total Sentinel Sites: %{customdata[2]}<br>' +
-                             'SARI Sites: %{customdata[3]}<br>' +
-                             'ILI Sites: %{customdata[4]}<br>' +
-                             '<extra></extra>'
-            )
-            
-            st.plotly_chart(fig_map, use_container_width=True)
-        
-        with col_key:
-            # Map Legend and Key Information - Vertical layout on far left
-            st.markdown("""
-            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #0093D5; margin-top: 60px;">
-                <h4 style="color: #003C71; margin-top: 0; margin-bottom: 15px; text-align: center;">🗝️ Map Key</h4>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="color: #0093D5; font-size: 16px;">●</span> 
-                        <span style="font-size: 12px;">Both SARI & ILI</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="color: #4CAF50; font-size: 16px;">●</span> 
-                        <span style="font-size: 12px;">SARI Only</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="color: #FF9800; font-size: 16px;">●</span> 
-                        <span style="font-size: 12px;">ILI Only</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="color: #E0E0E0; font-size: 16px;">●</span> 
-                        <span style="font-size: 12px;">Limited/No Data</span>
-                    </div>
-                </div>
-                <p style="margin-bottom: 0; font-size: 10px; color: #666; margin-top: 12px; text-align: center;">
-                    <i>WHO GIS Guidelines</i>
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        with col_table:
-            st.subheader("📊 Surveillance Implementation Summary")
-            
-            # Calculate comprehensive surveillance metrics
-            
-            # 1. Total Number of Countries with Surveillance (ILI or SARI)
-            # Look for "Type of" surveillance indicators
-            sari_type_data = surveillance_data[
-                (surveillance_data['indicator'] == 'Type of SARI surveillance') &
-                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
-            ]
-            ili_type_data = surveillance_data[
-                (surveillance_data['indicator'] == 'Type of ILI surveillance') &
-                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
-            ]
-            total_countries_with_surveillance = len(set(sari_type_data['country'].unique()) | set(ili_type_data['country'].unique()))
-            
-            # 2. Total Number of SARI sites
-            sari_sites_data = surveillance_data[
-                surveillance_data['indicator'] == 'Number of SARI sentinel surveillance sites'
-            ]
-            total_sari_sites = 0
-            for response in sari_sites_data['response']:
-                try:
-                    if pd.notna(response) and str(response).lower() not in ['n/a', 'no', 'non', 'no response', 'nan']:
-                        total_sari_sites += int(float(str(response)))
-                except (ValueError, TypeError):
-                    pass
-            
-            # 3. Total Number of ILI sites
-            ili_sites_data = surveillance_data[
-                surveillance_data['indicator'] == 'Numbers of ILI sentinel surveillance sites'
-            ]
-            total_ili_sites = 0
-            for response in ili_sites_data['response']:
-                try:
-                    if pd.notna(response) and str(response).lower() not in ['n/a', 'no', 'non', 'no response', 'nan']:
-                        total_ili_sites += int(float(str(response)))
-                except (ValueError, TypeError):
-                    pass
-            
-            # 4. Total Yes responses to ILI laboratory confirmation
-            ili_lab_confirmation = surveillance_data[
-                (surveillance_data['indicator'] == 'Is laboratory confirmation sought for ILI sentinel surveillance') &
-                (surveillance_data['response'].str.lower() == 'yes')
-            ]
-            total_ili_lab_yes = len(ili_lab_confirmation)
-            
-            # 5. Total countries using case definitions for surveillance
-            sari_case_def = surveillance_data[
-                (surveillance_data['indicator'] == 'Surveillance case definition used for SARI case ascertainment.') &
-                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
-            ]
-            ili_case_def = surveillance_data[
-                (surveillance_data['indicator'] == 'Surveillance case definition used for ILI case ascertainment.') &
-                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
-            ]
-            total_countries_case_def = len(set(sari_case_def['country'].unique()) | set(ili_case_def['country'].unique()))
-            
-            # 6. Countries with integrated surveillance for COVID-19 and Influenza
-            integrated_surveillance_data = landscape_data[
-                (landscape_data['category_id'] == 11) &
-                (landscape_data['indicator'] == 'Has the country integrated influenza and SARS-CoV-2 sentinel surveillance?') &
-                (landscape_data['response'].str.lower() == 'yes')
-            ]
-            total_countries_integrated = len(integrated_surveillance_data)
-            
-            # 7. Site type breakdown for SARI surveillance
-            sari_site_types = surveillance_data[
-                (surveillance_data['indicator'] == 'Sentinel sites involved in SARI surveillance.') &
-                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
-            ]
-            site_type_counts = sari_site_types['response'].value_counts()
-            
-            # Display key metrics in a more comprehensive format
-            st.markdown("**Implementation Overview:**")
-            
-            # First row of metrics
-            metrics_row1_col1, metrics_row1_col2 = st.columns(2)
-            with metrics_row1_col1:
-                st.metric(
-                    "🏥 Countries with Sentinel Surveillance", 
-                    total_countries_with_surveillance,
-                    help="Countries with ILI or SARI surveillance (excluding N/A, No responses)"
-                )
-            with metrics_row1_col2:
-                st.metric(
-                    "📋 Countries Using Case Definitions", 
-                    total_countries_case_def,
-                    help="Countries using case definitions for ILI or SARI surveillance"
-                )
-            
-            # Second row of metrics
-            metrics_row2_col1, metrics_row2_col2 = st.columns(2)
-            with metrics_row2_col1:
-                st.metric(
-                    "🏢 Total SARI Sites", 
-                    total_sari_sites,
-                    help="Sum of all SARI sentinel surveillance sites"
-                )
-            with metrics_row2_col2:
-                st.metric(
-                    "🏥 Total ILI Sites", 
-                    total_ili_sites,
-                    help="Sum of all ILI sentinel surveillance sites"
-                )
-            
-            # Third row of metrics
-            metrics_row3_col1, metrics_row3_col2 = st.columns(2)
-            with metrics_row3_col1:
-                st.metric(
-                    "🔬 ILI Lab Confirmation (Yes)", 
-                    total_ili_lab_yes,
-                    help="Countries seeking laboratory confirmation for ILI surveillance"
-                )
-            with metrics_row3_col2:
-                st.metric(
-                    "🔗 Integrated COVID-19 & Influenza", 
-                    total_countries_integrated,
-                    help="Countries with integrated influenza and SARS-CoV-2 sentinel surveillance"
-                )
-            
-            st.markdown("---")
-            
-            # SARI Site Types Breakdown
-            if not site_type_counts.empty:
-                st.markdown("**🏢 SARI Site Types:**")
-                for site_type, count in site_type_counts.head(5).items():
-                    st.write(f"• **{site_type}**: {count} countries")
-            
-    else:
-        st.warning("No SARI or ILI surveillance data available in the dataset.")
-
-    # Surveillance Analytics Visualizations
-    st.markdown("---")
-    
-    if not surveillance_data.empty:
-        # Create four columns for horizontal chart alignment
-        viz_col1, viz_col2, viz_col3, viz_col4 = st.columns(4)
-        
-        with viz_col1:
-            # Sunburst Chart: Surveillance Implementation Overview
-            # Prepare hierarchical data for sunburst chart
-            sunburst_data = []
-            
-            # Calculate surveillance type distribution for sunburst chart
-            sari_countries = surveillance_data[
-                (surveillance_data['category'] == 'Severe acute respiratory infection (SARI) surveillance') &
-                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
-            ]['country'].nunique()
-            
-            ili_countries = surveillance_data[
-                (surveillance_data['category'] == 'Influenza like Illness (ILI) Surveillance') &
-                (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
-            ]['country'].nunique()
-            
-            # Create hierarchical sunburst data
-            sunburst_data = [
-                {
-                    'category': 'Surveillance',
-                    'type': 'SARI',
-                    'metric': 'Countries',
-                    'value': sari_countries,
-                    'path': ['Surveillance', 'SARI', 'Countries']
-                },
-                {
-                    'category': 'Surveillance',
-                    'type': 'SARI',
-                    'metric': 'Sites',
-                    'value': total_sari_sites,
-                    'path': ['Surveillance', 'SARI', 'Sites']
-                },
-                {
-                    'category': 'Surveillance',
-                    'type': 'ILI',
-                    'metric': 'Countries',
-                    'value': ili_countries,
-                    'path': ['Surveillance', 'ILI', 'Countries']
-                },
-                {
-                    'category': 'Surveillance',
-                    'type': 'ILI',
-                    'metric': 'Sites',
-                    'value': total_ili_sites,
-                    'path': ['Surveillance', 'ILI', 'Sites']
-                }
-            ]
-            
-            sunburst_df = pd.DataFrame(sunburst_data)
-            
-            # Create sunburst chart
-            fig_sunburst = px.sunburst(
-                sunburst_df,
-                path=[px.Constant('Surveillance'), 'type', 'metric'],
-                values='value',
-                title="Surveillance Overview",
-                color='type',
-                color_discrete_map={
-                    'SARI': '#0093D5',  # WHO Blue
-                    'ILI': '#4CAF50'    # Green
-                }
-            )
-            
-            # Update sunburst chart layout
-            fig_sunburst.update_layout(
-                font={"family": "Montserrat", "size": 10},
-                height=350,
-                title={
-                    "font": {"size": 12, "color": "#003C71"},
-                    "x": 0.5,
-                    "xanchor": 'center'
-                }
-            )
-            
-            st.plotly_chart(fig_sunburst, use_container_width=True)
+            st.plotly_chart(fig_sunburst, use_container_width=True, key="surveillance_sunburst")
         
         with viz_col2:
             # 1. Surveillance Type Distribution
@@ -1669,7 +1177,7 @@ def main():
                 showlegend=True,
                 legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5}
             )
-            st.plotly_chart(fig_donut1, use_container_width=True)
+            st.plotly_chart(fig_donut1, use_container_width=True, key="surveillance_donut1")
             
         with viz_col3:
             # 2. Lab Confirmation Status
@@ -1693,7 +1201,7 @@ def main():
                 showlegend=True,
                 legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5}
             )
-            st.plotly_chart(fig_donut2, use_container_width=True)
+            st.plotly_chart(fig_donut2, use_container_width=True, key="surveillance_donut2")
             
         with viz_col4:
             # 3. Case Definition Usage
@@ -1717,7 +1225,7 @@ def main():
                 showlegend=True,
                 legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5}
             )
-            st.plotly_chart(fig_donut3, use_container_width=True)
+            st.plotly_chart(fig_donut3, use_container_width=True, key="surveillance_donut3")
 
     # Vaccination Overview
     st.markdown("---")
@@ -1896,7 +1404,7 @@ def main():
                              '<extra></extra>'
             )
             
-            st.plotly_chart(fig_vax_map, use_container_width=True)
+            st.plotly_chart(fig_vax_map, use_container_width=True, key="vaccination_map")
         
         with vax_col_key:
             # Vaccination Map Legend and Key Information - Vertical layout on far left
@@ -2244,7 +1752,7 @@ def main():
                              '<extra></extra>'
             )
             
-            st.plotly_chart(fig_lab_map, use_container_width=True)
+            st.plotly_chart(fig_lab_map, use_container_width=True, key="laboratory_map")
         
         with lab_col_key:
             # Laboratory Map Legend and Key Information - Vertical layout on far left
@@ -2605,7 +2113,7 @@ def main():
                         height=500
                     )
                     
-                    st.plotly_chart(fig_prep_map, use_container_width=True)
+                    st.plotly_chart(fig_prep_map, use_container_width=True, key="preparedness_map")
                     
                     # Add preparedness summary table
                     st.markdown("### Preparedness Summary")
@@ -2804,7 +2312,7 @@ def main():
                         height=500
                     )
                     
-                    st.plotly_chart(fig_reporting_map, use_container_width=True)
+                    st.plotly_chart(fig_reporting_map, use_container_width=True, key="reporting_map")
                     
                     # Add reporting compliance summary
                     st.markdown("### Reporting Compliance Distribution")
@@ -2831,7 +2339,7 @@ def main():
                         showlegend=True
                     )
                     
-                    st.plotly_chart(fig_compliance, use_container_width=True)
+                    st.plotly_chart(fig_compliance, use_container_width=True, key="compliance_pie")
                     
                     # Add detailed reporting table
                     st.markdown("### Detailed Reporting Status")
