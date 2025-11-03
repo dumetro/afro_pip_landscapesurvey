@@ -642,9 +642,6 @@ def main():
     demographic_categories = ['Population and Economy', 'Mortality per 100 000 population', 'Mortality per 1000 live births']
     demographic_data = landscape_data[landscape_data['category'].isin(demographic_categories)]
     
-    # Calculate demographic metrics
-    total_countries = landscape_data['country'].nunique()
-    
     # Extract specific indicators for calculations
     population_data = demographic_data[demographic_data['indicator'].str.contains('Population', case=False, na=False)]
     health_expenditure_data = demographic_data[demographic_data['indicator'].str.contains('Total Health Expenditure|Health expenditure|health spending', case=False, na=False)]
