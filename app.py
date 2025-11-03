@@ -25,7 +25,7 @@ st.markdown("""
     .main-header {
         background-color: #0093D5;
         color: white;
-        padding: 1rem;
+        padding-top: 0rem;
         width: 100vw;
         margin-left: calc(-50vw + 50%);
         margin-top: 0px;
@@ -34,6 +34,13 @@ st.markdown("""
         margin-bottom: 2rem;
         position: relative;
     }
+            
+    .block-container {
+            padding-top: 0rem;
+            padding-bottom: 0rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
     
     .metric-card {
         background-color: #F2F2F2;
