@@ -2535,8 +2535,247 @@ def main():
         
         # Content area (full width) - ready for future content
         if selected_country:
-            st.markdown(f"### � **{selected_country}** - Country Profile")
-            st.info("Country profile content will be added here.")
+            st.markdown(f"### 📊 **{selected_country}** - Country Profile")
+            
+            # Filter data for selected country
+            country_data = landscape_data[landscape_data['country'] == selected_country]
+            
+            if not country_data.empty:
+                
+                # 1. Population and Economy
+                st.markdown('<div class="section-header"><h2>🌍 Population and Economy</h2></div>', unsafe_allow_html=True)
+                
+                # Filter demographic and economic data for the selected country
+                demographic_categories = ['Population and Economy', 'Mortality per 100 000 population', 'Mortality per 1000 live births']
+                country_demographic_data = country_data[country_data['category'].isin(demographic_categories)]
+                
+                if not country_demographic_data.empty:
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        # Population data
+                        population_data = country_demographic_data[country_demographic_data['indicator'].str.contains('Population', case=False, na=False)]
+                        if not population_data.empty:
+                            pop_value = population_data['response'].iloc[0] if len(population_data) > 0 else "N/A"
+                            st.metric("Population", pop_value)
+                        else:
+                            st.metric("Population", "N/A")
+                    
+                    with col2:
+                        # Health expenditure data
+                        health_exp_data = country_demographic_data[country_demographic_data['indicator'].str.contains('Health expenditure|health spending', case=False, na=False)]
+                        if not health_exp_data.empty:
+                            health_value = health_exp_data['response'].iloc[0] if len(health_exp_data) > 0 else "N/A"
+                            st.metric("Health Expenditure", health_value)
+                        else:
+                            st.metric("Health Expenditure", "N/A")
+                    
+                    with col3:
+                        # Life expectancy data
+                        life_exp_data = country_demographic_data[country_demographic_data['indicator'].str.contains('Life expectancy', case=False, na=False)]
+                        if not life_exp_data.empty:
+                            life_value = life_exp_data['response'].iloc[0] if len(life_exp_data) > 0 else "N/A"
+                            st.metric("Life Expectancy", life_value)
+                        else:
+                            st.metric("Life Expectancy", "N/A")
+                    
+                    # Display detailed demographic data
+                    st.markdown("**Detailed Economic and Demographic Indicators:**")
+                    demographic_display = country_demographic_data[['indicator', 'response']].copy()
+                    demographic_display.columns = ['Indicator', 'Value']
+                    st.dataframe(
+                        demographic_display, 
+                        use_container_width=True, 
+                        hide_index=True,
+                        column_config={
+                            "Indicator": st.column_config.Column(width="large"),
+                            "Value": st.column_config.Column(width="medium")
+                        }
+                    )
+                else:
+                    st.info("No demographic and economic data available for this country.")
+                
+                st.markdown("---")
+                
+                # 2. Surveillance (SARI & ILI) Analysis
+                st.markdown('<div class="section-header"><h2>🗺️ Surveillance (SARI & ILI) Analysis</h2></div>', unsafe_allow_html=True)
+                
+                surveillance_categories = ['Severe acute respiratory infection (SARI) surveillance', 'Influenza like Illness (ILI) Surveillance']
+                country_surveillance_data = country_data[country_data['category'].isin(surveillance_categories)]
+                
+                if not country_surveillance_data.empty:
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**SARI Surveillance**")
+                        sari_data = country_surveillance_data[country_surveillance_data['category'] == 'Severe acute respiratory infection (SARI) surveillance']
+                        if not sari_data.empty:
+                            sari_display = sari_data[['indicator', 'response']].copy()
+                            sari_display.columns = ['Indicator', 'Response']
+                            st.dataframe(
+                                sari_display, 
+                                use_container_width=True, 
+                                hide_index=True,
+                                column_config={
+                                    "Indicator": st.column_config.Column(width="large"),
+                                    "Response": st.column_config.Column(width="medium")
+                                }
+                            )
+                        else:
+                            st.info("No SARI surveillance data available.")
+                    
+                    with col2:
+                        st.markdown("**ILI Surveillance**")
+                        ili_data = country_surveillance_data[country_surveillance_data['category'] == 'Influenza like Illness (ILI) Surveillance']
+                        if not ili_data.empty:
+                            ili_display = ili_data[['indicator', 'response']].copy()
+                            ili_display.columns = ['Indicator', 'Response']
+                            st.dataframe(
+                                ili_display, 
+                                use_container_width=True, 
+                                hide_index=True,
+                                column_config={
+                                    "Indicator": st.column_config.Column(width="large"),
+                                    "Response": st.column_config.Column(width="medium")
+                                }
+                            )
+                        else:
+                            st.info("No ILI surveillance data available.")
+                else:
+                    st.info("No surveillance data available for this country.")
+                
+                st.markdown("---")
+                
+                # 3. Vaccination Analysis
+                st.markdown('<div class="section-header"><h2>💉 Vaccination Analysis</h2></div>', unsafe_allow_html=True)
+                
+                # Filter by category_id == 9 for vaccination data
+                country_vaccination_data = country_data[country_data['category_id'] == 9]
+                
+                if not country_vaccination_data.empty:
+                    vaccination_display = country_vaccination_data[['indicator', 'response']].copy()
+                    vaccination_display.columns = ['Vaccination Indicator', 'Response']
+                    st.dataframe(
+                        vaccination_display, 
+                        use_container_width=True, 
+                        hide_index=True,
+                        column_config={
+                            "Vaccination Indicator": st.column_config.Column(width="large"),
+                            "Response": st.column_config.Column(width="medium")
+                        }
+                    )
+                else:
+                    st.info("No vaccination data available for this country.")
+                
+                st.markdown("---")
+                
+                # 4. Laboratory Capacity
+                st.markdown('<div class="section-header"><h2>🔬 Laboratory Capacity</h2></div>', unsafe_allow_html=True)
+                
+                # Filter by category_id == 6 for laboratory capacity data
+                country_lab_data = country_data[country_data['category_id'] == 6]
+                
+                if not country_lab_data.empty:
+                    lab_display = country_lab_data[['indicator', 'response']].copy()
+                    lab_display.columns = ['Laboratory Indicator', 'Response']
+                    st.dataframe(
+                        lab_display, 
+                        use_container_width=True, 
+                        hide_index=True,
+                        column_config={
+                            "Laboratory Indicator": st.column_config.Column(width="large"),
+                            "Response": st.column_config.Column(width="medium")
+                        }
+                    )
+                else:
+                    st.info("No laboratory capacity data available for this country.")
+                
+                st.markdown("---")
+                
+                # 5. Respiratory Pathogens Preparedness Plans
+                st.markdown('<div class="section-header"><h2>🦠 Respiratory Pathogens Preparedness Plans</h2></div>', unsafe_allow_html=True)
+                
+                # Filter by category_id == 10 for preparedness plans
+                country_preparedness_data = country_data[country_data['category_id'] == 10]
+                
+                if not country_preparedness_data.empty:
+                    preparedness_display = country_preparedness_data[['indicator', 'response']].copy()
+                    preparedness_display.columns = ['Preparedness Indicator', 'Response']
+                    st.dataframe(
+                        preparedness_display, 
+                        use_container_width=True, 
+                        hide_index=True,
+                        column_config={
+                            "Preparedness Indicator": st.column_config.Column(width="large"),
+                            "Response": st.column_config.Column(width="medium")
+                        }
+                    )
+                else:
+                    st.info("No respiratory pathogens preparedness data available for this country.")
+                
+                st.markdown("---")
+                
+                # 6. Respiratory Pathogens Data Reporting and Usage
+                st.markdown('<div class="section-header"><h2>📊 Respiratory Pathogens Data Reporting and Usage</h2></div>', unsafe_allow_html=True)
+                
+                # Filter by category_id == 8 for data reporting and usage
+                country_reporting_data = country_data[country_data['category_id'] == 8]
+                
+                if not country_reporting_data.empty:
+                    reporting_display = country_reporting_data[['indicator', 'response']].copy()
+                    reporting_display.columns = ['Reporting Indicator', 'Response']
+                    st.dataframe(
+                        reporting_display, 
+                        use_container_width=True, 
+                        hide_index=True,
+                        column_config={
+                            "Reporting Indicator": st.column_config.Column(width="large"),
+                            "Response": st.column_config.Column(width="medium")
+                        }
+                    )
+                else:
+                    st.info("No respiratory pathogens data reporting information available for this country.")
+                
+                st.markdown("---")
+                
+                # 7. Survey Detailed Exploration
+                st.markdown('<div class="section-header"><h2>📋 Survey Detailed Exploration</h2></div>', unsafe_allow_html=True)
+                
+                # Summary statistics for the country
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    total_indicators = country_data['indicator'].nunique()
+                    st.metric("Total Indicators", total_indicators)
+                
+                with col2:
+                    total_categories = country_data['category'].nunique()
+                    st.metric("Categories Covered", total_categories)
+                
+                with col3:
+                    total_responses = len(country_data[country_data['response'].notna()])
+                    st.metric("Total Responses", total_responses)
+                
+                with col4:
+                    response_rate = (total_responses / len(country_data) * 100) if len(country_data) > 0 else 0
+                    st.metric("Response Rate", f"{response_rate:.1f}%")
+                
+                # Detailed category exploration
+                st.markdown("**Explore by Category:**")
+                selected_category = st.selectbox(
+                    "Select Category for Detailed View:",
+                    options=sorted(country_data['category'].unique()),
+                    key="country_category_selector"
+                )
+                
+                if selected_category:
+                    category_data = country_data[country_data['category'] == selected_category]
+                    category_display = category_data[['indicator', 'response']].copy()
+                    category_display.columns = ['Indicator', 'Response']
+                    st.dataframe(category_display, use_container_width=True, hide_index=True)
+                
+            else:
+                st.warning(f"No data available for {selected_country}")
         else:
             st.info("Please select a country to view the profile.")
 
