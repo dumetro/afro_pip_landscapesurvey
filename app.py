@@ -244,6 +244,18 @@ def load_csv_data():
         st.error(f"Failed to load CSV data: {e}")
         return pd.DataFrame()
 
+def load_afroflunet_data():
+    """Load AFRO FluNet surveillance data from CSV file"""
+    try:
+        # Use relative path that works in any environment
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        data_path = os.path.join(script_dir, "data", "afroflunet_2024.csv")
+        df = pd.read_csv(data_path)
+        return df
+    except Exception as e:
+        st.error(f"Failed to load AFRO FluNet data: {e}")
+        return pd.DataFrame()
+
 def load_csv_fallback_countries():
     """Fallback function to load countries from CSV"""
     try:
@@ -513,77 +525,6 @@ def generate_sample_category_data():
     
     return pd.DataFrame(category_data)
 
-def generate_sample_health_data():
-    """Generate sample health data for demonstration"""
-    countries = ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 
-                'Cameroon', 'Cape Verde', 'Chad', 'Congo', 'Côte d\'Ivoire', 'Egypt',
-                'Ethiopia', 'Gabon', 'Ghana', 'Kenya', 'Madagascar', 'Mali', 'Morocco',
-                'Nigeria', 'Rwanda', 'Senegal', 'South Africa', 'Tanzania', 'Uganda']
-    
-    np.random.seed(42)
-    
-    health_data = []
-    for country in countries:
-        for year in range(2018, 2024):
-            health_data.append({
-                'country': country,
-                'life_expectancy': np.random.normal(65, 8),
-                'infant_mortality': np.random.exponential(25),
-                'maternal_mortality': np.random.exponential(200),
-                'vaccination_coverage': np.random.normal(75, 15),
-                'cancer_screening': np.random.normal(45, 20),
-                'tobacco_prevalence': np.random.normal(20, 8),
-                'year': year
-            })
-    
-    return pd.DataFrame(health_data)
-
-def generate_sample_vaccination_data():
-    """Generate sample vaccination data for demonstration"""
-    countries = ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso']  # Subset for performance
-    years = list(range(2018, 2024))
-    
-    np.random.seed(42)
-    vaccination_data = []
-    
-    for country in countries:
-        for year in years:
-            vaccination_data.append({
-                'country': country,
-                'year': year,
-                'mortality_rate': np.random.normal(8, 1.5),
-                'vaccination_dpt': np.random.normal(85, 10),
-                'vaccination_measles': np.random.normal(80, 12),
-                'vaccination_polio': np.random.normal(88, 8),
-                'vaccination_bcg': np.random.normal(75, 15),
-                'vaccination_hepatitis': np.random.normal(82, 10)
-            })
-    
-    return pd.DataFrame(vaccination_data)
-
-def generate_sample_influenza_data():
-    """Generate sample influenza surveillance data"""
-    countries = ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso']
-    years = list(range(2018, 2024))
-    
-    np.random.seed(42)
-    influenza_data = []
-    
-    for country in countries:
-        for year in years:
-            influenza_data.append({
-                'country': country,
-                'year': year,
-                'surveillance_system_exists': np.random.choice([True, False], p=[0.7, 0.3]),
-                'laboratories_count': np.random.poisson(3),
-                'sentinel_sites_count': np.random.poisson(8),
-                'seasonal_vaccination_policy': np.random.choice([True, False], p=[0.6, 0.4]),
-                'pandemic_preparedness_score': np.random.normal(60, 20),
-                'influenza_cases_reported': np.random.poisson(1500),
-                'hospitalization_rate': np.random.exponential(15)
-            })
-    
-    return pd.DataFrame(influenza_data)
 
 # Main application
 def main():
@@ -2535,7 +2476,68 @@ def main():
         
         # Content area (full width) - ready for future content
         if selected_country:
-            st.markdown(f"### 📊 **{selected_country}** - Country Profile")
+            # Get country flag emoji - mapping for common African countries
+            country_flags = {
+                'Algeria': '🇩🇿',
+                'Angola': '🇦🇴',
+                'Benin': '🇧🇯',
+                'Botswana': '🇧🇼',
+                'Burkina Faso': '🇧🇫',
+                'Burundi': '🇧🇮',
+                'Cameroon': '🇨🇲',
+                'Cape Verde': '🇨🇻',
+                'Central African Republic': '🇨🇫',
+                'Chad': '🇹🇩',
+                'Comoros': '🇰🇲',
+                'Congo': '🇨🇬',
+                'Democratic Republic of the Congo': '🇨🇩',
+                'Djibouti': '🇩🇯',
+                'Egypt': '🇪🇬',
+                'Equatorial Guinea': '🇬🇶',
+                'Eritrea': '🇪🇷',
+                'Eswatini': '🇸🇿',
+                'Ethiopia': '🇪🇹',
+                'Gabon': '🇬🇦',
+                'Gambia': '🇬🇲',
+                'Ghana': '🇬🇭',
+                'Guinea': '🇬🇳',
+                'Guinea-Bissau': '🇬🇼',
+                'Ivory Coast': '🇨🇮',
+                'Kenya': '🇰🇪',
+                'Lesotho': '🇱🇸',
+                'Liberia': '🇱🇷',
+                'Libya': '🇱🇾',
+                'Madagascar': '🇲🇬',
+                'Malawi': '🇲🇼',
+                'Mali': '🇲🇱',
+                'Mauritania': '🇲🇷',
+                'Mauritius': '🇲🇺',
+                'Morocco': '🇲🇦',
+                'Mozambique': '🇲🇿',
+                'Namibia': '🇳🇦',
+                'Niger': '🇳🇪',
+                'Nigeria': '🇳🇬',
+                'Rwanda': '🇷🇼',
+                'Sao Tome and Principe': '🇸🇹',
+                'Senegal': '🇸🇳',
+                'Seychelles': '🇸🇨',
+                'Sierra Leone': '🇸🇱',
+                'Somalia': '🇸🇴',
+                'South Africa': '🇿🇦',
+                'South Sudan': '🇸🇸',
+                'Sudan': '🇸🇩',
+                'Tanzania': '🇹🇿',
+                'Togo': '🇹🇬',
+                'Tunisia': '🇹🇳',
+                'Uganda': '🇺🇬',
+                'Zambia': '🇿🇲',
+                'Zimbabwe': '🇿🇼'
+            }
+            
+            # Get flag emoji for the selected country, fallback to generic flag if not found
+            country_flag = country_flags.get(selected_country, '🏳️')
+            
+            st.markdown(f"### {country_flag} **{selected_country}** - Country Profile")
             
             # Filter data for selected country
             country_data = landscape_data[landscape_data['country'] == selected_country]
@@ -2549,100 +2551,220 @@ def main():
                 demographic_categories = ['Population and Economy', 'Mortality per 100 000 population', 'Mortality per 1000 live births']
                 country_demographic_data = country_data[country_data['category'].isin(demographic_categories)]
                 
-                if not country_demographic_data.empty:
-                    col1, col2, col3 = st.columns(3)
+                # Create three columns for cards
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    # Population pyramid only (no card wrapper) - matching card height
+                    # Create dummy population pyramid data
+                    import numpy as np
                     
-                    with col1:
-                        # Population data
-                        population_data = country_demographic_data[country_demographic_data['indicator'].str.contains('Population', case=False, na=False)]
-                        if not population_data.empty:
-                            pop_value = population_data['response'].iloc[0] if len(population_data) > 0 else "N/A"
-                            st.metric("Population", pop_value)
-                        else:
-                            st.metric("Population", "N/A")
+                    # Age groups (simplified for display)
+                    age_groups = ['0-14', '15-29', '30-44', '45-59', '60-74', '75+']
                     
-                    with col2:
-                        # Health expenditure data
-                        health_exp_data = country_demographic_data[country_demographic_data['indicator'].str.contains('Health expenditure|health spending', case=False, na=False)]
-                        if not health_exp_data.empty:
-                            health_value = health_exp_data['response'].iloc[0] if len(health_exp_data) > 0 else "N/A"
-                            st.metric("Health Expenditure", health_value)
-                        else:
-                            st.metric("Health Expenditure", "N/A")
+                    # Generate dummy population data (in thousands)
+                    np.random.seed(42)  # For consistent dummy data
+                    male_pop = np.array([25, 20, 15, 10, 5, 2]) * 50
+                    female_pop = np.array([24, 19, 14, 9, 6, 3]) * 50
                     
-                    with col3:
-                        # Life expectancy data
-                        life_exp_data = country_demographic_data[country_demographic_data['indicator'].str.contains('Life expectancy', case=False, na=False)]
-                        if not life_exp_data.empty:
-                            life_value = life_exp_data['response'].iloc[0] if len(life_exp_data) > 0 else "N/A"
-                            st.metric("Life Expectancy", life_value)
-                        else:
-                            st.metric("Life Expectancy", "N/A")
+                    # Create population pyramid
+                    fig = go.Figure()
                     
-                    # Display detailed demographic data
-                    st.markdown("**Detailed Economic and Demographic Indicators:**")
-                    demographic_display = country_demographic_data[['indicator', 'response']].copy()
-                    demographic_display.columns = ['Indicator', 'Value']
-                    st.dataframe(
-                        demographic_display, 
-                        use_container_width=True, 
-                        hide_index=True,
-                        column_config={
-                            "Indicator": st.column_config.Column(width="large"),
-                            "Value": st.column_config.Column(width="medium")
-                        }
+                    # Add male population (negative values for left side)
+                    fig.add_trace(go.Bar(
+                        y=age_groups,
+                        x=-male_pop,
+                        name='Male',
+                        orientation='h',
+                        marker=dict(color='#4A90E2'),
+                        hovertemplate='<b>Age: %{y}</b><br>Male: %{x:,.0f}k<extra></extra>'
+                    ))
+                    
+                    # Add female population (positive values for right side)
+                    fig.add_trace(go.Bar(
+                        y=age_groups,
+                        x=female_pop,
+                        name='Female',
+                        orientation='h',
+                        marker=dict(color='#E94B3C'),
+                        hovertemplate='<b>Age: %{y}</b><br>Female: %{x:,.0f}k<extra></extra>'
+                    ))
+                    
+                    # Update layout - doubled height from 160px to 320px
+                    fig.update_layout(
+                        title=f'Population Pyramid - {selected_country}',
+                        barmode='overlay',
+                        height=305,  # Doubled height from 160px to 320px
+                        margin=dict(l=20, r=20, t=50, b=30),
+                        showlegend=False,
+                        xaxis=dict(
+                            tickvals=[-1000, -500, 0, 500, 1000],
+                            ticktext=['1M', '500K', '0', '500K', '1M'],
+                            tickfont=dict(size=12),
+                            title='Population (thousands)'
+                        ),
+                        yaxis=dict(
+                            tickfont=dict(size=12),
+                            title='Age Groups'
+                        ),
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        title_font=dict(size=14, color='#0093D5')
                     )
-                else:
-                    st.info("No demographic and economic data available for this country.")
+                    
+                    # Render the pyramid chart
+                    st.plotly_chart(fig, use_container_width=True, key=f"population_pyramid_{selected_country}")
+                
+                with col2:
+                    # Extract demographic data for card 2
+                    population_data = country_demographic_data[country_demographic_data['indicator'].str.contains('Population', case=False, na=False)]
+                    life_exp_data = country_demographic_data[country_demographic_data['indicator'].str.contains('Life expectancy', case=False, na=False)]
+                    
+                    pop_value = population_data['response'].iloc[0] if len(population_data) > 0 else "Data pending"
+                    life_value = life_exp_data['response'].iloc[0] if len(life_exp_data) > 0 else "Data pending"
+                    
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <h3 style="color: #0093D5; margin-bottom: 15px;">🌍 Demographics</h3>
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 24px; margin-right: 10px;">👥</span>
+                            <div>
+                                <strong style="font-size: 18px; color: #003C71;">{pop_value}</strong><br>
+                                <small style="color: #666;">Total Population</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 24px; margin-right: 10px;">❤️</span>
+                            <div>
+                                <strong style="font-size: 18px; color: #003C71;">{life_value}</strong><br>
+                                <small style="color: #666;">Life Expectancy</small>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col3:
+                    # Extract economic data for card 3
+                    health_exp_data = country_demographic_data[country_demographic_data['indicator'].str.contains('Health expenditure|health spending', case=False, na=False)]
+                    mortality_100k_data = country_demographic_data[country_demographic_data['category'] == 'Mortality per 100 000 population']
+                    
+                    health_value = health_exp_data['response'].iloc[0] if len(health_exp_data) > 0 else "Data pending"
+                    mortality_value = mortality_100k_data['response'].iloc[0] if len(mortality_100k_data) > 0 else "Data pending"
+                    
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <h3 style="color: #0093D5; margin-bottom: 15px;">💰 Economic & Health</h3>
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 24px; margin-right: 10px;">🏥</span>
+                            <div>
+                                <strong style="font-size: 18px; color: #003C71;">{health_value}</strong><br>
+                                <small style="color: #666;">Health Expenditure</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 24px; margin-right: 10px;">📊</span>
+                            <div>
+                                <strong style="font-size: 18px; color: #003C71;">{mortality_value}</strong><br>
+                                <small style="color: #666;">Mortality per 100k</small>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
                 st.markdown("---")
                 
                 # 2. Surveillance (SARI & ILI) Analysis
                 st.markdown('<div class="section-header"><h2>🗺️ Surveillance (SARI & ILI) Analysis</h2></div>', unsafe_allow_html=True)
                 
+                # Create 4 specific cards in a 3-column grid
                 surveillance_categories = ['Severe acute respiratory infection (SARI) surveillance', 'Influenza like Illness (ILI) Surveillance']
                 country_surveillance_data = country_data[country_data['category'].isin(surveillance_categories)]
                 
-                if not country_surveillance_data.empty:
-                    col1, col2 = st.columns(2)
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    # 1. Sentinel Surveillance
                     
-                    with col1:
-                        st.markdown("**SARI Surveillance**")
-                        sari_data = country_surveillance_data[country_surveillance_data['category'] == 'Severe acute respiratory infection (SARI) surveillance']
-                        if not sari_data.empty:
-                            sari_display = sari_data[['indicator', 'response']].copy()
-                            sari_display.columns = ['Indicator', 'Response']
-                            st.dataframe(
-                                sari_display, 
-                                use_container_width=True, 
-                                hide_index=True,
-                                column_config={
-                                    "Indicator": st.column_config.Column(width="large"),
-                                    "Response": st.column_config.Column(width="medium")
-                                }
-                            )
-                        else:
-                            st.info("No SARI surveillance data available.")
+                    sari_type = country_surveillance_data[country_surveillance_data['indicator'] == 'Type of SARI surveillance']
+                    ili_type = country_surveillance_data[country_surveillance_data['indicator'] == 'Type of ILI surveillance']
                     
-                    with col2:
-                        st.markdown("**ILI Surveillance**")
-                        ili_data = country_surveillance_data[country_surveillance_data['category'] == 'Influenza like Illness (ILI) Surveillance']
-                        if not ili_data.empty:
-                            ili_display = ili_data[['indicator', 'response']].copy()
-                            ili_display.columns = ['Indicator', 'Response']
-                            st.dataframe(
-                                ili_display, 
-                                use_container_width=True, 
-                                hide_index=True,
-                                column_config={
-                                    "Indicator": st.column_config.Column(width="large"),
-                                    "Response": st.column_config.Column(width="medium")
-                                }
-                            )
-                        else:
-                            st.info("No ILI surveillance data available.")
-                else:
-                    st.info("No surveillance data available for this country.")
+                    sentinel_response = "NO"
+                    if not sari_type.empty or not ili_type.empty:
+                        # Check if either SARI or ILI surveillance contains "sentinel"
+                        sari_val = sari_type['response'].iloc[0] if not sari_type.empty else ""
+                        ili_val = ili_type['response'].iloc[0] if not ili_type.empty else ""
+                        
+                        if ("sentinel" in str(sari_val).lower()) or ("sentinel" in str(ili_val).lower()):
+                            sentinel_response = "YES"
+                    
+                    st.markdown(f"""
+                    <div class="metric-card" style="margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center;">
+                            <span style="font-size: 20px; margin-right: 10px;">�</span>
+                            <div style="flex: 1;">
+                                <small style="color: #666; font-size: 12px;">Sentinel Surveillance</small><br>
+                                <strong style="font-size: 16px; color: #003C71;">{sentinel_response}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col2:
+                    # 2. # of ILI Sites
+                    ili_sites = country_surveillance_data[country_surveillance_data['indicator'] == 'Numbers of ILI sentinel surveillance sites']
+                    ili_sites_count = ili_sites['response'].iloc[0] if not ili_sites.empty else "No data"
+                    
+                    st.markdown(f"""
+                    <div class="metric-card" style="margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center;">
+                            <span style="font-size: 20px; margin-right: 10px;">🌡️</span>
+                            <div style="flex: 1;">
+                                <small style="color: #666; font-size: 12px;"># of ILI Sites</small><br>
+                                <strong style="font-size: 16px; color: #003C71;">{ili_sites_count}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col3:
+                    # 3. # of SARI Sites
+                    sari_sites = country_surveillance_data[country_surveillance_data['indicator'] == 'Number of SARI sentinel surveillance sites']
+                    sari_sites_count = sari_sites['response'].iloc[0] if not sari_sites.empty else "No data"
+                    
+                    st.markdown(f"""
+                    <div class="metric-card" style="margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center;">
+                            <span style="font-size: 20px; margin-right: 10px;">🏥</span>
+                            <div style="flex: 1;">
+                                <small style="color: #666; font-size: 12px;"># of SARI Sites</small><br>
+                                <strong style="font-size: 16px; color: #003C71;">{sari_sites_count}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Add a second row for the fourth card
+                col1_row2, col2_row2, col3_row2 = st.columns(3)
+                
+                with col1_row2:  # Place the fourth card in the first column
+                    # 4. Has Integrated Influenza & SARS-CoV-2 Sites
+                    integrated_data = country_data[
+                        (country_data['category_id'] == 11) & 
+                        (country_data['indicator'] == 'Has the country integrated influenza and SARS-CoV-2 sentinel surveillance?')
+                    ]
+                    integrated_response = integrated_data['response'].iloc[0] if not integrated_data.empty else "No data"
+                    
+                    st.markdown(f"""
+                    <div class="metric-card" style="margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center;">
+                            <span style="font-size: 20px; margin-right: 10px;">🔗</span>
+                            <div style="flex: 1;">
+                                <small style="color: #666; font-size: 12px;">Has Integrated Influenza & SARS-CoV-2 Sites</small><br>
+                                <strong style="font-size: 16px; color: #003C71;">{integrated_response}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
                 st.markdown("---")
                 
@@ -2653,17 +2775,68 @@ def main():
                 country_vaccination_data = country_data[country_data['category_id'] == 9]
                 
                 if not country_vaccination_data.empty:
-                    vaccination_display = country_vaccination_data[['indicator', 'response']].copy()
-                    vaccination_display.columns = ['Vaccination Indicator', 'Response']
-                    st.dataframe(
-                        vaccination_display, 
-                        use_container_width=True, 
-                        hide_index=True,
-                        column_config={
-                            "Vaccination Indicator": st.column_config.Column(width="large"),
-                            "Response": st.column_config.Column(width="medium")
-                        }
-                    )
+                    # Convert to list to split into columns
+                    vaccination_items = list(country_vaccination_data.iterrows())
+                    
+                    # Split items into three columns
+                    items_per_col = len(vaccination_items) // 3
+                    remainder = len(vaccination_items) % 3
+                    
+                    # Distribute items evenly with remainder going to first columns
+                    col1_items = vaccination_items[:items_per_col + (1 if remainder > 0 else 0)]
+                    col2_start = len(col1_items)
+                    col2_items = vaccination_items[col2_start:col2_start + items_per_col + (1 if remainder > 1 else 0)]
+                    col3_items = vaccination_items[col2_start + len(col2_items):]
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        for _, row in col1_items:
+                            indicator = row['indicator']
+                            response = row['response']
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">💉</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{indicator}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        for _, row in col2_items:
+                            indicator = row['indicator']
+                            response = row['response']
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">💉</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{indicator}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    
+                    with col3:
+                        for _, row in col3_items:
+                            indicator = row['indicator']
+                            response = row['response']
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">💉</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{indicator}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
                 else:
                     st.info("No vaccination data available for this country.")
                 
@@ -2676,19 +2849,201 @@ def main():
                 country_lab_data = country_data[country_data['category_id'] == 6]
                 
                 if not country_lab_data.empty:
-                    lab_display = country_lab_data[['indicator', 'response']].copy()
-                    lab_display.columns = ['Laboratory Indicator', 'Response']
-                    st.dataframe(
-                        lab_display, 
-                        use_container_width=True, 
-                        hide_index=True,
-                        column_config={
-                            "Laboratory Indicator": st.column_config.Column(width="large"),
-                            "Response": st.column_config.Column(width="medium")
-                        }
-                    )
+                    # Define the 6 specific indicators to display
+                    indicators_map = {
+                        'Does the country have a designated National Influenza Centre (NIC)': '🏛️',
+                        'Average number of virological samples processed per week (2024)': '🧪',
+                        'Virus Isolation capacity': '🦠',
+                        'Does the country have RT-PCR capacity?': '🧬',
+                        'Sequencing capacity': '📊',
+                        'Does the country forward samples to a WHO CC?': '📤'
+                    }
+                    
+                    # Create 3-column layout (2 cards each)
+                    col1, col2, col3 = st.columns(3)
+                    
+                    # Split indicators into three columns (2 each)
+                    indicators_list = list(indicators_map.keys())
+                    col1_indicators = indicators_list[:2]
+                    col2_indicators = indicators_list[2:4]
+                    col3_indicators = indicators_list[4:]
+                    
+                    with col1:
+                        for indicator_name in col1_indicators:
+                            # Find the response for this indicator
+                            indicator_data = country_lab_data[country_lab_data['indicator'] == indicator_name]
+                            response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                            icon = indicators_map[indicator_name]
+                            
+                            # Display name mapping for PCR
+                            display_name = "PCR used for confirmation" if indicator_name == 'Does the country have RT-PCR capacity?' else indicator_name
+                            
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        for indicator_name in col2_indicators:
+                            # Find the response for this indicator
+                            indicator_data = country_lab_data[country_lab_data['indicator'] == indicator_name]
+                            response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                            icon = indicators_map[indicator_name]
+                            
+                            display_name = indicator_name
+                            
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    
+                    with col3:
+                        for indicator_name in col3_indicators:
+                            # Find the response for this indicator
+                            indicator_data = country_lab_data[country_lab_data['indicator'] == indicator_name]
+                            response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                            icon = indicators_map[indicator_name]
+                            
+                            # Display name mapping
+                            display_name = indicator_name
+                            if indicator_name == 'Does the country forward samples to a WHO CC?':
+                                display_name = "Forwards samples to a WHO CC?"
+                            
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
                 else:
                     st.info("No laboratory capacity data available for this country.")
+                
+                # Epicurve: Tested Samples vs Positivity Rate for Influenza and SARS-CoV-2
+                st.markdown("#### 📊 Surveillance Epicurve: Tested Samples vs Positivity Rate")
+                
+                # Load AFRO FluNet data
+                afroflunet_data = load_afroflunet_data()
+                
+                if not afroflunet_data.empty and selected_country:
+                    # Filter data for selected country
+                    country_flunet = afroflunet_data[afroflunet_data['COUNTRY_NAME'] == selected_country]
+                    
+                    if not country_flunet.empty:
+                        # Prepare data for plotting
+                        country_flunet = country_flunet.copy()
+                        
+                        # Convert positivity rates from percentage strings to floats
+                        country_flunet['PositivityRate'] = country_flunet['PositivityRate'].str.rstrip('%').astype(float)
+                        country_flunet['Sars_PositivityRate'] = country_flunet['Sars_PositivityRate'].str.rstrip('%').astype(float)
+                        
+                        # Create dual-axis plot
+                        fig = make_subplots(
+                            rows=1, cols=1,
+                            specs=[[{"secondary_y": True}]],
+                            subplot_titles=[f"Laboratory Surveillance Data - {selected_country}"]
+                        )
+                        
+                        # Add tested samples (bar chart)
+                        fig.add_trace(
+                            go.Bar(
+                                x=country_flunet['ISO_WEEK'],
+                                y=country_flunet['SPEC_PROCESSED_NB'],
+                                name='Tested Samples',
+                                marker_color='lightblue',
+                                opacity=0.7
+                            ),
+                            secondary_y=False
+                        )
+                        
+                        # Add Influenza positivity rate (line chart)
+                        fig.add_trace(
+                            go.Scatter(
+                                x=country_flunet['ISO_WEEK'],
+                                y=country_flunet['PositivityRate'],
+                                mode='lines+markers',
+                                name='Influenza Positivity Rate (%)',
+                                line=dict(color='red', width=2),
+                                marker=dict(size=6)
+                            ),
+                            secondary_y=True
+                        )
+                        
+                        # Add SARS-CoV-2 positivity rate (line chart)
+                        fig.add_trace(
+                            go.Scatter(
+                                x=country_flunet['ISO_WEEK'],
+                                y=country_flunet['Sars_PositivityRate'],
+                                mode='lines+markers',
+                                name='SARS-CoV-2 Positivity Rate (%)',
+                                line=dict(color='orange', width=2),
+                                marker=dict(size=6)
+                            ),
+                            secondary_y=True
+                        )
+                        
+                        # Update layout
+                        fig.update_layout(
+                            title=f"Weekly Laboratory Surveillance - {selected_country} (2024)",
+                            xaxis_title="Epidemiological Week",
+                            height=500,
+                            hovermode='x unified',
+                            legend=dict(
+                                orientation="h",
+                                yanchor="bottom",
+                                y=1.02,
+                                xanchor="right",
+                                x=1
+                            )
+                        )
+                        
+                        # Update y-axes
+                        fig.update_yaxes(title_text="Number of Tested Samples", secondary_y=False)
+                        fig.update_yaxes(title_text="Positivity Rate (%)", secondary_y=True)
+                        
+                        st.plotly_chart(fig, use_container_width=True, key=f"lab_epicurve_{selected_country}")
+                        
+                        # Summary statistics
+                        col1, col2, col3, col4 = st.columns(4)
+                        
+                        with col1:
+                            total_tested = country_flunet['SPEC_PROCESSED_NB'].sum()
+                            st.metric("Total Samples Tested", f"{total_tested:,}")
+                        
+                        with col2:
+                            avg_flu_pos = country_flunet['PositivityRate'].mean()
+                            st.metric("Avg Influenza Positivity", f"{avg_flu_pos:.1f}%")
+                        
+                        with col3:
+                            avg_covid_pos = country_flunet['Sars_PositivityRate'].mean()
+                            st.metric("Avg SARS-CoV-2 Positivity", f"{avg_covid_pos:.1f}%")
+                        
+                        with col4:
+                            weeks_reported = len(country_flunet)
+                            st.metric("Reporting Weeks", weeks_reported)
+                            
+                    else:
+                        st.info(f"No AFRO FluNet surveillance data available for {selected_country}.")
+                else:
+                    st.info("Please select a country to view surveillance data.")
                 
                 st.markdown("---")
                 
@@ -2699,17 +3054,75 @@ def main():
                 country_preparedness_data = country_data[country_data['category_id'] == 10]
                 
                 if not country_preparedness_data.empty:
-                    preparedness_display = country_preparedness_data[['indicator', 'response']].copy()
-                    preparedness_display.columns = ['Preparedness Indicator', 'Response']
-                    st.dataframe(
-                        preparedness_display, 
-                        use_container_width=True, 
-                        hide_index=True,
-                        column_config={
-                            "Preparedness Indicator": st.column_config.Column(width="large"),
-                            "Response": st.column_config.Column(width="medium")
-                        }
-                    )
+                    # Define the 3 specific indicators to display
+                    indicators_map = {
+                        'Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?': ('Respiratory Pandemic Preparedness plan PRET', '📋'),
+                        'Year plan Last updated': ('Last Year updated?', '📅'),
+                        'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?': ('Conducted Simex', '🎯')
+                    }
+                    
+                    # Create 3-column layout (1 card per column)
+                    col1, col2, col3 = st.columns(3)
+                    
+                    # Get indicators list and assign one to each column
+                    indicators_list = list(indicators_map.keys())
+                    
+                    with col1:
+                        indicator_name = indicators_list[0]
+                        # Find the response for this indicator
+                        indicator_data = country_preparedness_data[country_preparedness_data['indicator'] == indicator_name]
+                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                        display_name, icon = indicators_map[indicator_name]
+                        
+                        st.markdown(f"""
+                        <div class="metric-card" style="margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                <div style="flex: 1;">
+                                    <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                    <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        indicator_name = indicators_list[1]
+                        # Find the response for this indicator
+                        indicator_data = country_preparedness_data[country_preparedness_data['indicator'] == indicator_name]
+                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                        display_name, icon = indicators_map[indicator_name]
+                        
+                        st.markdown(f"""
+                        <div class="metric-card" style="margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                <div style="flex: 1;">
+                                    <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                    <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col3:
+                        indicator_name = indicators_list[2]
+                        # Find the response for this indicator
+                        indicator_data = country_preparedness_data[country_preparedness_data['indicator'] == indicator_name]
+                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                        display_name, icon = indicators_map[indicator_name]
+                        
+                        st.markdown(f"""
+                        <div class="metric-card" style="margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                <div style="flex: 1;">
+                                    <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                    <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
                 else:
                     st.info("No respiratory pathogens preparedness data available for this country.")
                 
@@ -2722,43 +3135,69 @@ def main():
                 country_reporting_data = country_data[country_data['category_id'] == 8]
                 
                 if not country_reporting_data.empty:
-                    reporting_display = country_reporting_data[['indicator', 'response']].copy()
-                    reporting_display.columns = ['Reporting Indicator', 'Response']
-                    st.dataframe(
-                        reporting_display, 
-                        use_container_width=True, 
-                        hide_index=True,
-                        column_config={
-                            "Reporting Indicator": st.column_config.Column(width="large"),
-                            "Response": st.column_config.Column(width="medium")
-                        }
-                    )
+                    # Define the indicators to display
+                    base_indicators = [
+                        ('Does the country report to the FluID?', 'Reports to FluID', '📋'),
+                        ('Does the country report to the FluNet?', 'Reports to FluNet', '🌐'),
+                        ('Does the country use the PISA tool to assess the severity of seasonal influenza?', 'Uses PISA tools for assessing seasonal influenza severity', '🔧'),
+                        ('Has the country performed a burden of disease analysis?', 'Has the country performed a burden of disease analysis?', '📊')
+                    ]
+                    
+                    # Check if burden of disease analysis was performed
+                    bod_indicator = country_reporting_data[country_reporting_data['indicator'] == 'Has the country performed a burden of disease analysis?']
+                    bod_performed = bod_indicator['response'].iloc[0] if not bod_indicator.empty else "No"
+                    
+                    # Add conditional indicators if BOD analysis was performed
+                    if str(bod_performed).lower() == 'yes':
+                        base_indicators.extend([
+                            ('What year was it performed?', 'Year of BOD analysis', '📅'),
+                            ('What was the estimated burden?', 'What was the estimated burden?', '📈')
+                        ])
+                    
+                    # Create dynamic columns based on number of indicators
+                    num_indicators = len(base_indicators)
+                    if num_indicators <= 3:
+                        cols = st.columns(3)
+                    else:
+                        # Create two rows of 3 columns each
+                        cols_row1 = st.columns(3)
+                        if num_indicators > 3:
+                            cols_row2 = st.columns(3)
+                    
+                    # Display indicators
+                    for i, (indicator_name, display_name, icon) in enumerate(base_indicators):
+                        # Find the response for this indicator
+                        indicator_data = country_reporting_data[country_reporting_data['indicator'] == indicator_name]
+                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                        
+                        # Determine which column to use
+                        if num_indicators <= 3:
+                            col = cols[i]
+                        else:
+                            if i < 3:
+                                col = cols_row1[i]
+                            else:
+                                col = cols_row2[i - 3]
+                        
+                        with col:
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
                 else:
                     st.info("No respiratory pathogens data reporting information available for this country.")
                 
                 st.markdown("---")
                 
                 # 7. Survey Detailed Exploration
-                st.markdown('<div class="section-header"><h2>📋 Survey Detailed Exploration</h2></div>', unsafe_allow_html=True)
-                
-                # Summary statistics for the country
-                col1, col2, col3, col4 = st.columns(4)
-                
-                with col1:
-                    total_indicators = country_data['indicator'].nunique()
-                    st.metric("Total Indicators", total_indicators)
-                
-                with col2:
-                    total_categories = country_data['category'].nunique()
-                    st.metric("Categories Covered", total_categories)
-                
-                with col3:
-                    total_responses = len(country_data[country_data['response'].notna()])
-                    st.metric("Total Responses", total_responses)
-                
-                with col4:
-                    response_rate = (total_responses / len(country_data) * 100) if len(country_data) > 0 else 0
-                    st.metric("Response Rate", f"{response_rate:.1f}%")
+                st.markdown('<div class="section-header"><h2>📋 Survey Detail Exploration</h2></div>', unsafe_allow_html=True)
                 
                 # Detailed category exploration
                 st.markdown("**Explore by Category:**")
