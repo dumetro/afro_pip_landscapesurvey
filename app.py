@@ -16,8 +16,7 @@ warnings.filterwarnings('ignore')
 st.set_page_config(
     page_title="WHO AFRO Influenza Landscape Survey",
     page_icon="assets/who_logo.png",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 # Custom CSS for WHO styling
@@ -42,10 +41,6 @@ st.markdown("""
         border-radius: 0.5rem;
         border-left: 4px solid #0093D5;
         margin-bottom: 1rem;
-    }
-    
-    .sidebar .sidebar-content {
-        background-color: #003C71;
     }
     
     .stSelectbox > div > div {
@@ -201,6 +196,12 @@ def load_landscape_survey_data():
                        survey_response as response,
                        ic.category_id as category_id,
                        ci.indicator_id as indicator_id
+                SELECT ci.countryname as country,
+                       ic.cat_name as category,
+                       ci.indicatorname as indicator,
+                       survey_response as response,
+                       ic.category_id as category_id,
+                       ci.indicator_id as indicator_id
                 FROM countryprofiles.country_indicators ci
                 INNER JOIN countryprofiles.indicators ind on ind.indicator_id=ci.indicator_id
                 INNER JOIN countryprofiles.indicator_categories ic on ic.category_id=ind.category_id
@@ -233,7 +234,10 @@ def load_csv_data():
         # Use relative path that works in any environment
         script_dir = os.path.dirname(os.path.abspath(__file__))
         data_path = os.path.join(script_dir, "data", "landscapesurvey2024.csv")
+        data_path = os.path.join(script_dir, "data", "landscapesurvey2024.csv")
         df = pd.read_csv(data_path)
+        # Use the actual column names from the file
+        # Columns are: country, category, indicator, response, category_id, indicator_id
         # Use the actual column names from the file
         # Columns are: country, category, indicator, response, category_id, indicator_id
         return df
@@ -242,6 +246,14 @@ def load_csv_data():
         return pd.DataFrame()
 
 def load_csv_fallback_countries():
+    """Fallback function to load countries from CSV"""
+    try:
+        landscape_data = load_csv_data()
+        countries = landscape_data['country'].unique()
+        return [{'name': country} for country in countries]
+    except Exception as e:
+        st.error(f"Failed to load countries from CSV: {e}")
+        return []
     """Fallback function to load countries from CSV"""
     try:
         landscape_data = load_csv_data()
@@ -260,11 +272,20 @@ def load_csv_fallback_indicators():
     except Exception as e:
         st.error(f"Failed to load indicators from CSV: {e}")
         return []
+    """Fallback function to load indicators from CSV"""
+    try:
+        landscape_data = load_csv_data()
+        indicators = landscape_data['indicator'].unique()
+        return [{'name': indicator} for indicator in indicators]
+    except Exception as e:
+        st.error(f"Failed to load indicators from CSV: {e}")
+        return []
 
 def load_csv_fallback_categories():
     """Generate categories data from CSV"""
     landscape_data = load_csv_data()
     if not landscape_data.empty:
+        categories = landscape_data['category'].unique()
         categories = landscape_data['category'].unique()
         return pd.DataFrame({
             'category_id': range(1, len(categories) + 1),
@@ -279,14 +300,18 @@ def generate_descriptive_statistics(data, category=None):
     
     if category:
         data = data[data['category'] == category]
+        data = data[data['category'] == category]
     
     stats = {}
     
     # Convert response to numeric where possible
     numeric_responses = pd.to_numeric(data['response'], errors='coerce')
+    # Convert response to numeric where possible
+    numeric_responses = pd.to_numeric(data['response'], errors='coerce')
     numeric_data = data[numeric_responses.notna()]
     
     if not numeric_data.empty:
+        numeric_values = pd.to_numeric(numeric_data['response'])
         numeric_values = pd.to_numeric(numeric_data['response'])
         stats['numeric'] = {
             'count': len(numeric_values),
@@ -301,7 +326,9 @@ def generate_descriptive_statistics(data, category=None):
     
     # Categorical responses
     categorical_data = data[pd.to_numeric(data['response'], errors='coerce').isna()]
+    categorical_data = data[pd.to_numeric(data['response'], errors='coerce').isna()]
     if not categorical_data.empty:
+        value_counts = categorical_data['response'].value_counts()
         value_counts = categorical_data['response'].value_counts()
         stats['categorical'] = {
             'unique_values': len(value_counts),
@@ -311,9 +338,9 @@ def generate_descriptive_statistics(data, category=None):
     
     # Country coverage
     stats['coverage'] = {
-        'countries_with_data': data['country'].nunique(),
-        'total_indicators': data['indicator'].nunique(),
-        'response_rate': len(data) / (data['country'].nunique() * data['indicator'].nunique()) if data['indicator'].nunique() > 0 else 0
+        'countries_with_data': int(data['country'].nunique()),
+        'total_indicators': int(data['indicator'].nunique()),
+        'response_rate': (len(data) / (data['country'].nunique() * data['indicator'].nunique())) if data['indicator'].nunique() > 0 else 0
     }
     
     return stats
@@ -381,7 +408,7 @@ def load_surveillance_data():
     pivoted = surveillance_data.pivot_table(
         index=['country'], 
         columns=['indicator'], 
-        values='response', 
+        values='response',  
         aggfunc='first'
     ).reset_index()
     
@@ -595,59 +622,23 @@ def main():
     st.markdown("""
     <div class="main-header">
         <h1>WHO AFRO Influenza Landscape Survey Dashboard</h1>
-        <p>Country Profiles and Respiratory Surveillance Analysis</p>
         <p>Survey Period: 2023 - 2024</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Sidebar filters
-    st.sidebar.markdown("### 🔧 Dashboard Filters")
-    
     # Load core data
     landscape_data = load_landscape_survey_data()
-    countries_data = load_countries_data()
-    categories_data = load_indicator_categories_data()
     
     if landscape_data.empty:
         st.error("No landscape survey data available. Please check your data source.")
         return
-    
-    # Category filter
-    available_categories = sorted(landscape_data['category'].unique())
-    selected_categories = st.sidebar.multiselect(
-        "Select Categories", 
-        available_categories, 
-        default=[]  # No categories selected by default
-    )
-    
-    # Country filter
-    available_countries = sorted(landscape_data['country'].unique())
-    selected_countries = st.sidebar.multiselect(
-        "Select Countries", 
-        available_countries,
-        default=[]  # No countries selected by default
-    )
-    
-    # Apply filters
-    filtered_data = landscape_data.copy()
-    
-    # Apply category filter only if categories are selected
-    if selected_categories:
-        filtered_data = filtered_data[filtered_data['category'].isin(selected_categories)]
-    
-    # Apply country filter only if countries are selected  
-    if selected_countries:
-        filtered_data = filtered_data[filtered_data['country'].isin(selected_countries)]
-    
+
     # Regional Demographics and Economic Overview
     st.markdown('<div class="section-header"><h2>🌍 Regional Demographics and Economic Overview</h2></div>', unsafe_allow_html=True)
     
     # Filter data for demographic and economic categories
     demographic_categories = ['Population and Economy', 'Mortality per 100 000 population', 'Mortality per 1000 live births']
     demographic_data = landscape_data[landscape_data['category'].isin(demographic_categories)]
-    
-    # Calculate demographic metrics
-    total_countries = landscape_data['country'].nunique()
     
     # Extract specific indicators for calculations
     population_data = demographic_data[demographic_data['indicator'].str.contains('Population', case=False, na=False)]
@@ -915,7 +906,7 @@ def main():
                              '<extra></extra>'
             )
             
-            st.plotly_chart(fig_map, use_container_width=True)
+            st.plotly_chart(fig_map, use_container_width=True, key="surveillance_detailed_map")
         
         with col_key:
             # Map Legend and Key Information - Vertical layout on far left
@@ -1160,7 +1151,7 @@ def main():
                 }
             )
             
-            st.plotly_chart(fig_sunburst, use_container_width=True)
+            st.plotly_chart(fig_sunburst, use_container_width=True, key="surveillance_sunburst")
         
         with viz_col2:
             # 1. Surveillance Type Distribution
@@ -1186,7 +1177,7 @@ def main():
                 showlegend=True,
                 legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5}
             )
-            st.plotly_chart(fig_donut1, use_container_width=True)
+            st.plotly_chart(fig_donut1, use_container_width=True, key="surveillance_donut1")
             
         with viz_col3:
             # 2. Lab Confirmation Status
@@ -1210,7 +1201,7 @@ def main():
                 showlegend=True,
                 legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5}
             )
-            st.plotly_chart(fig_donut2, use_container_width=True)
+            st.plotly_chart(fig_donut2, use_container_width=True, key="surveillance_donut2")
             
         with viz_col4:
             # 3. Case Definition Usage
@@ -1234,7 +1225,7 @@ def main():
                 showlegend=True,
                 legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5}
             )
-            st.plotly_chart(fig_donut3, use_container_width=True)
+            st.plotly_chart(fig_donut3, use_container_width=True, key="surveillance_donut3")
 
     # Vaccination Overview
     st.markdown("---")
@@ -1413,7 +1404,7 @@ def main():
                              '<extra></extra>'
             )
             
-            st.plotly_chart(fig_vax_map, use_container_width=True)
+            st.plotly_chart(fig_vax_map, use_container_width=True, key="vaccination_map")
         
         with vax_col_key:
             # Vaccination Map Legend and Key Information - Vertical layout on far left
@@ -1761,7 +1752,7 @@ def main():
                              '<extra></extra>'
             )
             
-            st.plotly_chart(fig_lab_map, use_container_width=True)
+            st.plotly_chart(fig_lab_map, use_container_width=True, key="laboratory_map")
         
         with lab_col_key:
             # Laboratory Map Legend and Key Information - Vertical layout on far left
@@ -2122,7 +2113,7 @@ def main():
                         height=500
                     )
                     
-                    st.plotly_chart(fig_prep_map, use_container_width=True)
+                    st.plotly_chart(fig_prep_map, use_container_width=True, key="preparedness_map")
                     
                     # Add preparedness summary table
                     st.markdown("### Preparedness Summary")
@@ -2143,9 +2134,9 @@ def main():
     else:
         st.warning("No pandemic preparedness data available in the dataset.")
 
-    # Respiratory Pathogen Reporting and Usage
+    # Respiratory Pathogens Data Reporting and Usage
     st.markdown("---")
-    st.markdown('<div class="section-header"><h2>📊 Respiratory Pathogen Reporting and Usage</h2></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header"><h2>📊 Respiratory Pathogens Data Reporting and Usage</h2></div>', unsafe_allow_html=True)
     
     # Filter data for data reporting & use (category_id=8)
     reporting_data = landscape_data[landscape_data['category_id'] == 8]
@@ -2321,7 +2312,7 @@ def main():
                         height=500
                     )
                     
-                    st.plotly_chart(fig_reporting_map, use_container_width=True)
+                    st.plotly_chart(fig_reporting_map, use_container_width=True, key="reporting_map")
                     
                     # Add reporting compliance summary
                     st.markdown("### Reporting Compliance Distribution")
@@ -2348,7 +2339,7 @@ def main():
                         showlegend=True
                     )
                     
-                    st.plotly_chart(fig_compliance, use_container_width=True)
+                    st.plotly_chart(fig_compliance, use_container_width=True, key="compliance_pie")
                     
                     # Add detailed reporting table
                     st.markdown("### Detailed Reporting Status")
@@ -2543,39 +2534,6 @@ def main():
                
     5. **Mortality Rate data**: https://data.who.int/indicators/i/E3CAF2B/2322814.
     """)
-    
-    # Database Connection Status
-    st.markdown("---")
-    st.markdown('<div class="section-header"><h2>🔌 System Information</h2></div>', unsafe_allow_html=True)
-    
-    # Check database connection status
-    engine = init_connection()
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("📊 Data Source")
-        if engine:
-            st.success("✅ **Database Connection**: Active")
-            st.info("📡 **Source**: PostgreSQL Database (emp_pip)")
-            
-            # Get database config for display
-            if hasattr(st, 'secrets') and 'database' in st.secrets:
-                db_host = st.secrets.database.get("DB_HOST", "Unknown")
-                db_name = st.secrets.database.get("DB_NAME", "Unknown") 
-                db_user = st.secrets.database.get("DB_USER", "Unknown")
-                db_port = st.secrets.database.get("DB_PORT", "5432")
-                
-                st.write(f"**Host**: {db_host}")
-                st.write(f"**Database**: {db_name}")
-                st.write(f"**User**: {db_user}")
-                st.write(f"**Port**: {db_port}")
-            else:
-                st.write("**Configuration**: Using fallback settings")
-        else:
-            st.warning("⚠️ **Database Connection**: Unavailable")
-            st.info("📁 **Source**: CSV Files (Static Data)")
-            st.write("**Fallback Mode**: Using local CSV data from /data folder")
 
 if __name__ == "__main__":
     main()
