@@ -757,18 +757,54 @@ def main():
                 
                 country_df = pd.DataFrame(country_summary)
                 
+                # Add all African countries to ensure proper background colors
+                all_african_countries = [
+                    'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
+                    'Central African Republic', 'Chad', 'Comoros', 'Congo', 'Democratic Republic of the Congo', 
+                    'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
+                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
+                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
+                    'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
+                    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire', 'Democratic Republic of the Cong'
+                ]
+                
+                # Create complete African map data
+                complete_map_data = []
+                our_countries = country_df['country'].tolist()
+                
+                for african_country in all_african_countries:
+                    if african_country in our_countries:
+                        # Country in our survey - use existing data
+                        existing_data = country_df[country_df['country'] == african_country].iloc[0]
+                        complete_map_data.append(existing_data.to_dict())
+                    else:
+                        # Country not in our survey - white background
+                        complete_map_data.append({
+                            'country': african_country,
+                            'sari_status': 'Not Surveyed',
+                            'ili_status': 'Not Surveyed', 
+                            'overall_status': 'Not Surveyed',
+                            'total_sentinel_sites': 0,
+                            'sari_sites': 0,
+                            'ili_sites': 0
+                        })
+                
+                complete_country_df = pd.DataFrame(complete_map_data)
+                
                 # Create choropleth map using African country data
                 # WHO GIS Guidelines: Use clear, accessible colors and provide legend
                 color_map = {
                     "Both SARI & ILI": "#0093D5",      # WHO Blue
                     "SARI Only": "#4CAF50",            # Green  
                     "ILI Only": "#FF9800",             # Orange
-                    "Limited/None": "#E0E0E0"          # Light gray
+                    "Limited/None": "#E0E0E0",         # Light gray - insufficient data
+                    "Not Surveyed": "#FFFFFF"          # White - not in survey
                 }
                 
                 # Create the map
                 fig_map = px.choropleth(
-                    country_df,
+                    complete_country_df,
                     locations='country',
                     locationmode='country names',
                     color='overall_status',
@@ -850,7 +886,11 @@ def main():
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <span style="color: #E0E0E0; font-size: 16px;">●</span> 
-                            <span style="font-size: 12px;">Limited/No Data</span>
+                            <span style="font-size: 12px;">Insufficient Data</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #FFFFFF; font-size: 16px; border: 1px solid #ccc;">●</span> 
+                            <span style="font-size: 12px;">Not Surveyed</span>
                         </div>
                     </div>
                     <p style="margin-bottom: 0; font-size: 10px; color: #666; margin-top: 12px; text-align: center;">
@@ -996,8 +1036,8 @@ def main():
         st.markdown("---")
         
         if not surveillance_data.empty:
-            # Create four columns for horizontal chart alignment
-            viz_col1, viz_col2, viz_col3, viz_col4 = st.columns(4)
+            # Create three columns for horizontal chart alignment
+            viz_col1, viz_col2, viz_col3 = st.columns(3)
             
             with viz_col1:
                 # Sunburst Chart: Surveillance Implementation Overview
@@ -1074,35 +1114,9 @@ def main():
                 )
                 
                 st.plotly_chart(fig_sunburst, use_container_width=True, key="surveillance_sunburst")
-            
+                
             with viz_col2:
-                # 1. Surveillance Type Distribution
-                surveillance_type_data = surveillance_data.groupby('category')['country'].nunique().reset_index()
-                surveillance_type_data['category'] = surveillance_type_data['category'].str.replace(
-                    'Severe acute respiratory infection (SARI) surveillance', 'SARI'
-                ).str.replace(
-                    'Influenza like Illness (ILI) Surveillance', 'ILI'
-                )
-                
-                fig_donut1 = px.pie(
-                    surveillance_type_data,
-                    values='country',
-                    names='category',
-                    title="Countries by Type",
-                    color_discrete_sequence=['#0093D5', '#4CAF50', '#FF9800'],
-                    hole=0.4
-                )
-                fig_donut1.update_layout(
-                    font={"family": "Montserrat", "size": 10},
-                    height=350,
-                    title={"font": {"size": 12, "color": "#003C71"}},
-                    showlegend=True,
-                    legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5}
-                )
-                st.plotly_chart(fig_donut1, use_container_width=True, key="surveillance_donut1")
-                
-            with viz_col3:
-                # 2. Lab Confirmation Status
+                # 1. Lab Confirmation Status
                 lab_confirmation_data = pd.DataFrame({
                     'status': ['With Lab Confirmation', 'Without Lab Confirmation'],
                     'count': [total_ili_lab_yes, max(0, surveillance_data['country'].nunique() - total_ili_lab_yes)]
@@ -1125,8 +1139,8 @@ def main():
                 )
                 st.plotly_chart(fig_donut2, use_container_width=True, key="surveillance_donut2")
                 
-            with viz_col4:
-                # 3. Case Definition Usage
+            with viz_col3:
+                # 2. Case Definition Usage
                 case_def_data = pd.DataFrame({
                     'status': ['Using Case Definitions', 'Not Using Case Definitions'],
                     'count': [total_countries_case_def, max(0, surveillance_data['country'].nunique() - total_countries_case_def)]
@@ -1253,6 +1267,42 @@ def main():
                 
                 vax_country_df = pd.DataFrame(vax_country_summary)
                 
+                # Add all African countries to ensure proper background colors
+                all_african_countries = [
+                    'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
+                    'Central African Republic', 'Chad', 'Comoros', 'Congo', 'Democratic Republic of the Congo', 
+                    'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
+                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
+                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
+                    'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
+                    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire', 'Democratic Republic of the Cong'
+                ]
+                
+                # Create complete African vaccination map data
+                complete_vax_map_data = []
+                our_countries = vax_country_df['country'].tolist()
+                
+                for african_country in all_african_countries:
+                    if african_country in our_countries:
+                        # Country in our survey - use existing data
+                        existing_data = vax_country_df[vax_country_df['country'] == african_country].iloc[0]
+                        complete_vax_map_data.append(existing_data.to_dict())
+                    else:
+                        # Country not in our survey - white background
+                        complete_vax_map_data.append({
+                            'country': african_country,
+                            'formal_policy': 'Not Surveyed',
+                            'public_sector': 'Not Surveyed',
+                            'private_sector': 'Not Surveyed',
+                            'public_year': 'Not Surveyed',
+                            'overall_status': 'Not Surveyed',
+                            'risk_groups': 'Not Surveyed',
+                            'formulation': 'Not Surveyed'
+                        })
+                
+                complete_vax_country_df = pd.DataFrame(complete_vax_map_data)
+                
                 # Create choropleth map for vaccination implementation
                 # WHO GIS Guidelines: Use clear, accessible colors
                 vax_color_map = {
@@ -1261,12 +1311,13 @@ def main():
                     "Private Sector Only": "#FF9800",      # Orange - private sector
                     "Policy Only": "#9C27B0",              # Purple - policy without implementation
                     "Limited Implementation": "#FFC107",    # Amber - limited implementation
-                    "No Implementation": "#E0E0E0"          # Light gray - no implementation
+                    "No Implementation": "#E0E0E0",         # Light gray - no implementation/insufficient data
+                    "Not Surveyed": "#FFFFFF"              # White - not in survey
                 }
                 
                 # Create the vaccination map
                 fig_vax_map = px.choropleth(
-                    vax_country_df,
+                    complete_vax_country_df,
                     locations='country',
                     locationmode='country names',
                     color='overall_status',
@@ -1356,7 +1407,11 @@ def main():
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <span style="color: #E0E0E0; font-size: 14px;">●</span> 
-                            <span style="font-size: 11px;">No Implementation</span>
+                            <span style="font-size: 11px;">Insufficient Data</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #FFFFFF; font-size: 14px; border: 1px solid #ccc;">●</span> 
+                            <span style="font-size: 11px;">Not Surveyed</span>
                         </div>
                     </div>
                     <p style="margin-bottom: 0; font-size: 10px; color: #666; margin-top: 12px; text-align: center;">
@@ -1600,6 +1655,43 @@ def main():
                 
                 lab_country_df = pd.DataFrame(lab_country_summary)
                 
+                # Add all African countries to ensure proper background colors
+                all_african_countries = [
+                    'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
+                    'Central African Republic', 'Chad', 'Comoros', 'Congo', 'Democratic Republic of the Congo', 
+                    'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
+                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
+                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
+                    'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
+                    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire', 'Democratic Republic of the Cong'
+                ]
+                
+                # Create complete African laboratory map data
+                complete_lab_map_data = []
+                our_countries = lab_country_df['country'].tolist()
+                
+                for african_country in all_african_countries:
+                    if african_country in our_countries:
+                        # Country in our survey - use existing data
+                        existing_data = lab_country_df[lab_country_df['country'] == african_country].iloc[0]
+                        complete_lab_map_data.append(existing_data.to_dict())
+                    else:
+                        # Country not in our survey - white background
+                        complete_lab_map_data.append({
+                            'country': african_country,
+                            'nic': 'Not Surveyed',
+                            'ref_lab': 'Not Surveyed',
+                            'rtpcr': 'Not Surveyed',
+                            'sequencing': 'Not Surveyed',
+                            'overall_status': 'Not Surveyed',
+                            'whocc_forwarding': 'Not Surveyed',
+                            'weekly_samples': 'Not Surveyed',
+                            'capacity_score': 0
+                        })
+                
+                complete_lab_country_df = pd.DataFrame(complete_lab_map_data)
+                
                 # Create choropleth map for laboratory capacity
                 # WHO GIS Guidelines: Use clear, accessible colors
                 lab_color_map = {
@@ -1607,12 +1699,13 @@ def main():
                     "High Capacity": "#4CAF50",        # Green - high capacity
                     "Moderate Capacity": "#FF9800",    # Orange - moderate capacity
                     "Basic Capacity": "#FFC107",       # Amber - basic capacity
-                    "Limited Capacity": "#E0E0E0"      # Light gray - limited capacity
+                    "Limited Capacity": "#E0E0E0",     # Light gray - limited capacity/insufficient data
+                    "Not Surveyed": "#FFFFFF"          # White - not in survey
                 }
                 
                 # Create the laboratory capacity map
                 fig_lab_map = px.choropleth(
-                    lab_country_df,
+                    complete_lab_country_df,
                     locations='country',
                     locationmode='country names',
                     color='overall_status',
@@ -1700,7 +1793,11 @@ def main():
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <span style="color: #E0E0E0; font-size: 14px;">●</span> 
-                            <span style="font-size: 11px;">Limited Capacity</span>
+                            <span style="font-size: 11px;">Insufficient Data</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #FFFFFF; font-size: 14px; border: 1px solid #ccc;">●</span> 
+                            <span style="font-size: 11px;">Not Surveyed</span>
                         </div>
                     </div>
                     <p style="margin-bottom: 0; font-size: 10px; color: #666; margin-top: 12px; text-align: center;">
