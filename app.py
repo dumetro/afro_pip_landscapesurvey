@@ -578,7 +578,7 @@ def main():
         
         try:
             health_expenditure = pd.to_numeric(health_expenditure_data['response'], errors='coerce').sum()
-            health_expenditure = f"${health_expenditure/1000000:.1f}M" if health_expenditure > 0 else "Data pending"
+            health_expenditure = f"${health_expenditure:.2f}M" if health_expenditure > 0 else "Data pending"
         except:
             health_expenditure = "Data pending"
         
@@ -1664,7 +1664,7 @@ def main():
                     'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
                     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
                     'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
-                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire', 'Democratic Republic of the Cong'
+                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire', 'Democratic Republic of the Congo'
                 ]
                 
                 # Create complete African laboratory map data
@@ -2652,17 +2652,52 @@ def main():
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:
-                    # Population pyramid only (no card wrapper) - matching card height
-                    # Create dummy population pyramid data
-                    import numpy as np
+                    # Population pyramid using real data from afro_population.csv
                     
-                    # Age groups (simplified for display)
-                    age_groups = ['0-14', '15-29', '30-44', '45-59', '60-74', '75+']
-                    
-                    # Generate dummy population data (in thousands)
-                    np.random.seed(42)  # For consistent dummy data
-                    male_pop = np.array([25, 20, 15, 10, 5, 2]) * 50
-                    female_pop = np.array([24, 19, 14, 9, 6, 3]) * 50
+                    # Load population data
+                    try:
+                        population_df = pd.read_csv('data/afro_population.csv')
+                        
+                        # Handle country name mapping for population data
+                        country_name_mapping = {
+                            'Congo, Dem. Rep.': 'Democratic Republic of the Cong',
+                            'Congo, Rep.': 'Republic of the Congo',
+                            'Cote d\'Ivoire': 'Cote d\'Ivoire',
+                            'Egypt, Arab Rep.': 'Egypt',
+                            'Gambia, The': 'Gambia',
+                            'Tanzania': 'United Republic of Tanzania'
+                        }
+                        
+                        # Map selected country to population data country name
+                        pop_country_name = selected_country
+                        for pop_name, survey_name in country_name_mapping.items():
+                            if selected_country == survey_name:
+                                pop_country_name = pop_name
+                                break
+                        
+                        # Filter data for selected country
+                        country_pop_data = population_df[population_df['country'] == pop_country_name]
+                        
+                        if not country_pop_data.empty:
+                            # Sort by age group order
+                            age_group_order = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+']
+                            country_pop_data = country_pop_data.set_index('AgeGroup').reindex(age_group_order).reset_index()
+                            
+                            # Extract age groups and population data
+                            age_groups = country_pop_data['AgeGroup'].tolist()
+                            male_pop = (country_pop_data['Male_Population'] / 1000).tolist()  # Convert to thousands
+                            female_pop = (country_pop_data['Female_Population'] / 1000).tolist()  # Convert to thousands
+                        else:
+                            # Fallback to dummy data if country not found
+                            age_groups = ['0-4','5-9', '10-14', '15-29', '30-44', '45-59', '60-74', '75-79', '80+']
+                            male_pop = [1250, 1000, 750, 500, 250, 100, 75, 50, 25]
+                            female_pop = [1200, 950, 700, 450, 300, 150, 100, 75, 50]
+                            
+                    except Exception as e:
+                        # Fallback to dummy data if file loading fails
+                        age_groups = ['0-4','5-9', '10-14', '15-29', '30-44', '45-59', '60-74', '75-79', '80+']
+                        male_pop = [1250, 1000, 750, 500, 250, 100, 75, 50, 25]
+                        female_pop = [1200, 950, 700, 450, 300, 150, 100, 75, 50]
                     
                     # Create population pyramid
                     fig = go.Figure()
@@ -2670,11 +2705,12 @@ def main():
                     # Add male population (negative values for left side)
                     fig.add_trace(go.Bar(
                         y=age_groups,
-                        x=-male_pop,
+                        x=[-x for x in male_pop],  # Negative values for left side
                         name='Male',
                         orientation='h',
                         marker=dict(color='#4A90E2'),
-                        hovertemplate='<b>Age: %{y}</b><br>Male: %{x:,.0f}k<extra></extra>'
+                        hovertemplate='<b>Age: %{y}</b><br>Male: %{customdata:,.0f}k<extra></extra>',
+                        customdata=male_pop
                     ))
                     
                     # Add female population (positive values for right side)
@@ -2687,6 +2723,10 @@ def main():
                         hovertemplate='<b>Age: %{y}</b><br>Female: %{x:,.0f}k<extra></extra>'
                     ))
                     
+                    # Calculate max value for axis scaling
+                    max_pop = max(max(male_pop) if male_pop else 0, max(female_pop) if female_pop else 0)
+                    axis_max = max(1000, max_pop * 1.1)  # Ensure minimum scale of 1000k
+                    
                     # Update layout - doubled height from 160px to 320px
                     fig.update_layout(
                         title=f'Population Pyramid - {selected_country}',
@@ -2695,8 +2735,9 @@ def main():
                         margin=dict(l=20, r=20, t=50, b=30),
                         showlegend=False,
                         xaxis=dict(
-                            tickvals=[-1000, -500, 0, 500, 1000],
-                            ticktext=['1M', '500K', '0', '500K', '1M'],
+                            range=[-axis_max, axis_max],
+                            tickvals=[-axis_max, -axis_max/2, 0, axis_max/2, axis_max],
+                            ticktext=[f'{axis_max/1000:.0f}M', f'{axis_max/2000:.0f}M', '0', f'{axis_max/2000:.0f}M', f'{axis_max/1000:.0f}M'],
                             tickfont=dict(size=12),
                             title='Population (thousands)'
                         ),
@@ -2745,7 +2786,7 @@ def main():
                     health_exp_data = country_demographic_data[country_demographic_data['indicator'].str.contains('Health expenditure|health spending', case=False, na=False)]
                     mortality_100k_data = country_demographic_data[country_demographic_data['category'] == 'Mortality per 100 000 population']
                     
-                    health_value = health_exp_data['response'].iloc[0] if len(health_exp_data) > 0 else "Data pending"
+                    health_value = (health_exp_data['response'].iloc[0]) if len(health_exp_data) > 0 else "Data pending"
                     mortality_value = mortality_100k_data['response'].iloc[0] if len(mortality_100k_data) > 0 else "Data pending"
                     
                     st.markdown(f"""

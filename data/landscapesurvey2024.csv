@@ -678,62 +678,62 @@ Cote d'Ivoire,Zoonotic Influenza surveillance,Has the country performed joint ri
 Cote d'Ivoire,Zoonotic Influenza surveillance,"If yes, when",2021,12,58
 Cote d'Ivoire,Zoonotic Influenza surveillance,"Has the country held an IHR (International Health
 Regulations) / PVS (Performance of Veterinary Services) national bridging workshop for influenza?",Yes,12,17
-Democratic Republic of the Cong,Population and Economy,Population,105789731,1,1
-Democratic Republic of the Cong,Population and Economy,Total Health Expenditure,3.79,1,2
-Democratic Republic of the Cong,Population and Economy,Life expectancy,60,1,3
-Democratic Republic of the Cong,Mortality per 100 000 population,All cause/all ages,1308.6,2,4
-Democratic Republic of the Cong,Mortality per 1000 live births,All cause/under 5 years,66.9,3,5
-Democratic Republic of the Cong,Influenza like Illness (ILI) Surveillance,Type of ILI surveillance,Sentinel,4,6
-Democratic Republic of the Cong,Influenza like Illness (ILI) Surveillance,Surveillance case definition used for ILI case ascertainment.,IDSR 3rd Edition,4,7
-Democratic Republic of the Cong,Influenza like Illness (ILI) Surveillance,Is laboratory confirmation sought for ILI sentinel surveillance,Yes,4,8
-Democratic Republic of the Cong,Influenza like Illness (ILI) Surveillance,Numbers of ILI sentinel surveillance sites,4,4,9
-Democratic Republic of the Cong,Severe acute respiratory infection (SARI) surveillance,Type of SARI surveillance,Sentinel,5,10
-Democratic Republic of the Cong,Severe acute respiratory infection (SARI) surveillance,Sentinel sites involved in SARI surveillance.,Hospital,5,11
-Democratic Republic of the Cong,Severe acute respiratory infection (SARI) surveillance,Surveillance case definition used for SARI case ascertainment.,IDSR 3rd Edition,5,12
-Democratic Republic of the Cong,Severe acute respiratory infection (SARI) surveillance,Is laboratory confirmation sought for SARI sentinel surveillance,Yes,5,13
-Democratic Republic of the Cong,Severe acute respiratory infection (SARI) surveillance,Number of SARI sentinel surveillance sites,4,5,14
-Democratic Republic of the Cong,Severe acute respiratory infection (SARI) surveillance,Is there timely all-cause mortality data available in the country?,Yes,5,15
-Democratic Republic of the Cong,Virological surveillance,Does the National Influenza reference laboratory have:,Yes,6,64
-Democratic Republic of the Cong,Virological surveillance,Type of virological surveillance,Sentinel,6,16
-Democratic Republic of the Cong,Virological surveillance,Average number of virological samples processed per week (2024),35,6,32
-Democratic Republic of the Cong,Virological surveillance,Does the country have RT-PCR capacity?,Yes,6,18
-Democratic Republic of the Cong,Virological surveillance,Does the country have genomic sequencing capacity?,Yes,6,19
-Democratic Republic of the Cong,Virological surveillance,Does the country test for other respiratory viruses?,Yes,6,20
-Democratic Republic of the Cong,Virological surveillance,Does the country have a designated National Influenza Centre (NIC),No,6,21
-Democratic Republic of the Cong,Virological surveillance,Does the country have a designated National Influenza reference laboratory?,Yes,6,22
-Democratic Republic of the Cong,Virological surveillance,Does the laboratory participate in the External Quality Assurance Panel (EQAP)?,Yes,6,23
-Democratic Republic of the Cong,Virological surveillance,Virus Isolation capacity,Yes,6,25
-Democratic Republic of the Cong,Virological surveillance,Antiviral susceptibility testing capability,No,6,65
-Democratic Republic of the Cong,Virological surveillance,Sequencing capacity,Yes,6,66
-Democratic Republic of the Cong,Virological surveillance,Does the country forward samples to a WHO CC?,Yes,6,28
-Democratic Republic of the Cong,Data reporting & use,Are epidemiological and virological sentinel surveillance datasets integrated?,No,8,34
-Democratic Republic of the Cong,Data reporting & use,Does the country report to the FluID?,No,8,31
-Democratic Republic of the Cong,Data reporting & use,Reporting consistency (2023-2024),1,8,61
-Democratic Republic of the Cong,Data reporting & use,Does the country report to the FluNet?,Yes,8,33
-Democratic Republic of the Cong,Data reporting & use,Does the country use the PISA tool to assess the severity of seasonal influenza?,No,8,35
-Democratic Republic of the Cong,Data reporting & use,Has the country performed a burden of disease analysis?,Yes,8,36
-Democratic Republic of the Cong,Data reporting & use,What year was it performed?,2018,8,37
-Democratic Republic of the Cong,Data reporting & use,Was it published? If yes provide link,https://pubmed.ncbi.nlm.nih.gov/30120818/,8,39
-Democratic Republic of the Cong,Vaccination,Does the country have a formal seasonal influenza vaccination policy?,No,9,40
-Democratic Republic of the Cong,Vaccination,Has seasonal influenza vaccine been introduced in the public sector? Year introduced;,No response,9,41
-Democratic Republic of the Cong,Vaccination,Has seasonal influenza vaccine been introduced in the private sector?,No response,9,42
-Democratic Republic of the Cong,Vaccination,What are the recommended risk groups for influenza vaccine?,No response,9,43
-Democratic Republic of the Cong,Vaccination,Which vaccine formulation is used in the country: Northern/Southern hemisphere vaccine?,No response,9,44
-Democratic Republic of the Cong,Pandemic preparedness and response,Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?,No,10,45
-Democratic Republic of the Cong,Pandemic preparedness and response,Year plan Last updated,No response,10,46
-Democratic Republic of the Cong,Pandemic preparedness and response,Does the country have another pandemic preparedness plan available?,No response,10,47
-Democratic Republic of the Cong,Pandemic preparedness and response,Influenza specific,No response,10,48
-Democratic Republic of the Cong,Pandemic preparedness and response,COVID-19 specific,No response,10,49
-Democratic Republic of the Cong,Pandemic preparedness and response,All Hazards,No response,10,50
-Democratic Republic of the Cong,Pandemic preparedness and response,Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?,No,10,51
-Democratic Republic of the Cong,Pandemic preparedness and response,Year simulation conducted,N/A,10,52
-Democratic Republic of the Cong,Pandemic preparedness and response,Does the country have an updated national pandemic vaccine deployment plan for Influenza pandemic vaccine,No,10,53
-Democratic Republic of the Cong,Integration of Influenza surveillance and SARS-CoV-2,Has the country integrated influenza and SARS-CoV-2 sentinel surveillance?,Yes,11,54
-Democratic Republic of the Cong,Integration of Influenza surveillance and SARS-CoV-2,Does the country report SARS-CoV-2 results to the Flu Net?,Yes,11,26
-Democratic Republic of the Cong,Zoonotic Influenza surveillance,Does the country perform surveillance activities at the human-animal interface?,Yes,12,56
-Democratic Republic of the Cong,Zoonotic Influenza surveillance,Has the country performed joint risk assessment?,Yes,12,57
-Democratic Republic of the Cong,Zoonotic Influenza surveillance,"If yes, when",2024,12,58
-Democratic Republic of the Cong,Zoonotic Influenza surveillance,"Has the country held an IHR (International Health
+Democratic Republic of the Congo,Population and Economy,Population,105789731,1,1
+Democratic Republic of the Congo,Population and Economy,Total Health Expenditure,3.79,1,2
+Democratic Republic of the Congo,Population and Economy,Life expectancy,60,1,3
+Democratic Republic of the Congo,Mortality per 100 000 population,All cause/all ages,1308.6,2,4
+Democratic Republic of the Congo,Mortality per 1000 live births,All cause/under 5 years,66.9,3,5
+Democratic Republic of the Congo,Influenza like Illness (ILI) Surveillance,Type of ILI surveillance,Sentinel,4,6
+Democratic Republic of the Congo,Influenza like Illness (ILI) Surveillance,Surveillance case definition used for ILI case ascertainment.,IDSR 3rd Edition,4,7
+Democratic Republic of the Congo,Influenza like Illness (ILI) Surveillance,Is laboratory confirmation sought for ILI sentinel surveillance,Yes,4,8
+Democratic Republic of the Congo,Influenza like Illness (ILI) Surveillance,Numbers of ILI sentinel surveillance sites,4,4,9
+Democratic Republic of the Congo,Severe acute respiratory infection (SARI) surveillance,Type of SARI surveillance,Sentinel,5,10
+Democratic Republic of the Congo,Severe acute respiratory infection (SARI) surveillance,Sentinel sites involved in SARI surveillance.,Hospital,5,11
+Democratic Republic of the Congo,Severe acute respiratory infection (SARI) surveillance,Surveillance case definition used for SARI case ascertainment.,IDSR 3rd Edition,5,12
+Democratic Republic of the Congo,Severe acute respiratory infection (SARI) surveillance,Is laboratory confirmation sought for SARI sentinel surveillance,Yes,5,13
+Democratic Republic of the Congo,Severe acute respiratory infection (SARI) surveillance,Number of SARI sentinel surveillance sites,4,5,14
+Democratic Republic of the Congo,Severe acute respiratory infection (SARI) surveillance,Is there timely all-cause mortality data available in the country?,Yes,5,15
+Democratic Republic of the Congo,Virological surveillance,Does the National Influenza reference laboratory have:,Yes,6,64
+Democratic Republic of the Congo,Virological surveillance,Type of virological surveillance,Sentinel,6,16
+Democratic Republic of the Congo,Virological surveillance,Average number of virological samples processed per week (2024),35,6,32
+Democratic Republic of the Congo,Virological surveillance,Does the country have RT-PCR capacity?,Yes,6,18
+Democratic Republic of the Congo,Virological surveillance,Does the country have genomic sequencing capacity?,Yes,6,19
+Democratic Republic of the Congo,Virological surveillance,Does the country test for other respiratory viruses?,Yes,6,20
+Democratic Republic of the Congo,Virological surveillance,Does the country have a designated National Influenza Centre (NIC),No,6,21
+Democratic Republic of the Congo,Virological surveillance,Does the country have a designated National Influenza reference laboratory?,Yes,6,22
+Democratic Republic of the Congo,Virological surveillance,Does the laboratory participate in the External Quality Assurance Panel (EQAP)?,Yes,6,23
+Democratic Republic of the Congo,Virological surveillance,Virus Isolation capacity,Yes,6,25
+Democratic Republic of the Congo,Virological surveillance,Antiviral susceptibility testing capability,No,6,65
+Democratic Republic of the Congo,Virological surveillance,Sequencing capacity,Yes,6,66
+Democratic Republic of the Congo,Virological surveillance,Does the country forward samples to a WHO CC?,Yes,6,28
+Democratic Republic of the Congo,Data reporting & use,Are epidemiological and virological sentinel surveillance datasets integrated?,No,8,34
+Democratic Republic of the Congo,Data reporting & use,Does the country report to the FluID?,No,8,31
+Democratic Republic of the Congo,Data reporting & use,Reporting consistency (2023-2024),1,8,61
+Democratic Republic of the Congo,Data reporting & use,Does the country report to the FluNet?,Yes,8,33
+Democratic Republic of the Congo,Data reporting & use,Does the country use the PISA tool to assess the severity of seasonal influenza?,No,8,35
+Democratic Republic of the Congo,Data reporting & use,Has the country performed a burden of disease analysis?,Yes,8,36
+Democratic Republic of the Congo,Data reporting & use,What year was it performed?,2018,8,37
+Democratic Republic of the Congo,Data reporting & use,Was it published? If yes provide link,https://pubmed.ncbi.nlm.nih.gov/30120818/,8,39
+Democratic Republic of the Congo,Vaccination,Does the country have a formal seasonal influenza vaccination policy?,No,9,40
+Democratic Republic of the Congo,Vaccination,Has seasonal influenza vaccine been introduced in the public sector? Year introduced;,No response,9,41
+Democratic Republic of the Congo,Vaccination,Has seasonal influenza vaccine been introduced in the private sector?,No response,9,42
+Democratic Republic of the Congo,Vaccination,What are the recommended risk groups for influenza vaccine?,No response,9,43
+Democratic Republic of the Congo,Vaccination,Which vaccine formulation is used in the country: Northern/Southern hemisphere vaccine?,No response,9,44
+Democratic Republic of the Congo,Pandemic preparedness and response,Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?,No,10,45
+Democratic Republic of the Congo,Pandemic preparedness and response,Year plan Last updated,No response,10,46
+Democratic Republic of the Congo,Pandemic preparedness and response,Does the country have another pandemic preparedness plan available?,No response,10,47
+Democratic Republic of the Congo,Pandemic preparedness and response,Influenza specific,No response,10,48
+Democratic Republic of the Congo,Pandemic preparedness and response,COVID-19 specific,No response,10,49
+Democratic Republic of the Congo,Pandemic preparedness and response,All Hazards,No response,10,50
+Democratic Republic of the Congo,Pandemic preparedness and response,Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?,No,10,51
+Democratic Republic of the Congo,Pandemic preparedness and response,Year simulation conducted,N/A,10,52
+Democratic Republic of the Congo,Pandemic preparedness and response,Does the country have an updated national pandemic vaccine deployment plan for Influenza pandemic vaccine,No,10,53
+Democratic Republic of the Congo,Integration of Influenza surveillance and SARS-CoV-2,Has the country integrated influenza and SARS-CoV-2 sentinel surveillance?,Yes,11,54
+Democratic Republic of the Congo,Integration of Influenza surveillance and SARS-CoV-2,Does the country report SARS-CoV-2 results to the Flu Net?,Yes,11,26
+Democratic Republic of the Congo,Zoonotic Influenza surveillance,Does the country perform surveillance activities at the human-animal interface?,Yes,12,56
+Democratic Republic of the Congo,Zoonotic Influenza surveillance,Has the country performed joint risk assessment?,Yes,12,57
+Democratic Republic of the Congo,Zoonotic Influenza surveillance,"If yes, when",2024,12,58
+Democratic Republic of the Congo,Zoonotic Influenza surveillance,"Has the country held an IHR (International Health
 Regulations) / PVS (Performance of Veterinary Services) national bridging workshop for influenza?",Yes,12,17
 Equatorial Guinea,Population and Economy,Population,1847549,1,1
 Equatorial Guinea,Population and Economy,Total Health Expenditure,3.4,1,2
