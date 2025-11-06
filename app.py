@@ -723,7 +723,7 @@ def main():
                         for response in sari_sentinel_data['response']:
                             try:
                                 # Handle numeric responses and convert to int
-                                if pd.notna(response) and str(response).lower() not in ['no response', 'no', 'none', 'nan']:
+                                if pd.notna(response) and str(response).lower() not in ['no response', 'n/a','no', 'none', 'nan']:
                                     sari_sites += int(float(str(response)))
                             except (ValueError, TypeError):
                                 pass  # Skip non-numeric responses
@@ -738,7 +738,7 @@ def main():
                         for response in ili_sentinel_data['response']:
                             try:
                                 # Handle numeric responses and convert to int
-                                if pd.notna(response) and str(response).lower() not in ['no response', 'no', 'none', 'nan']:
+                                if pd.notna(response) and str(response).lower() not in ['no response', 'n/a', 'no', 'none', 'nan']:
                                     ili_sites += int(float(str(response)))
                             except (ValueError, TypeError):
                                 pass  # Skip non-numeric responses
@@ -760,13 +760,13 @@ def main():
                 # Add all African countries to ensure proper background colors
                 all_african_countries = [
                     'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
-                    'Central African Republic', 'Chad', 'Comoros', 'Congo', 'Democratic Republic of the Congo', 
+                    'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
                     'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
                     'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
                     'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
                     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
-                    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
-                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire', 'Democratic Republic of the Cong'
+                    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire'
                 ]
                 
                 # Create complete African map data
@@ -1441,13 +1441,13 @@ def main():
                 # Add all African countries to ensure proper background colors
                 all_african_countries = [
                     'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
-                    'Central African Republic', 'Chad', 'Comoros', 'Congo', 'Democratic Republic of the Congo', 
+                    'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
                     'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
                     'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
                     'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
                     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
-                    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
-                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire', 'Democratic Republic of the Cong'
+                    'Somalia', 'South Africa', 'South Sudan', 'Sudan','Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire'
                 ]
                 
                 # Create complete African vaccination map data
@@ -1829,13 +1829,13 @@ def main():
                 # Add all African countries to ensure proper background colors
                 all_african_countries = [
                     'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
-                    'Central African Republic', 'Chad', 'Comoros', 'Congo', 'Democratic Republic of the Congo', 
+                    'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
                     'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
                     'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
                     'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
                     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
-                    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
-                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire', 'Democratic Republic of the Congo'
+                    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire'
                 ]
                 
                 # Create complete African laboratory map data
@@ -2757,7 +2757,7 @@ def main():
                 'Central African Republic': '🇨🇫',
                 'Chad': '🇹🇩',
                 'Comoros': '🇰🇲',
-                'Congo': '🇨🇬',
+                'Republic of the Congo': '🇨🇬',
                 'Democratic Republic of the Congo': '🇨🇩',
                 'Djibouti': '🇩🇯',
                 'Egypt': '🇪🇬',
@@ -2794,7 +2794,7 @@ def main():
                 'South Africa': '🇿🇦',
                 'South Sudan': '🇸🇸',
                 'Sudan': '🇸🇩',
-                'Tanzania': '🇹🇿',
+                'United Republic of Tanzania': '🇹🇿',
                 'Togo': '🇹🇬',
                 'Tunisia': '🇹🇳',
                 'Uganda': '🇺🇬',
@@ -2831,7 +2831,7 @@ def main():
                         
                         # Handle country name mapping for population data
                         country_name_mapping = {
-                            'Congo, Dem. Rep.': 'Democratic Republic of the Cong',
+                            'Congo, Dem. Rep.': 'Democratic Republic of the Congo',
                             'Congo, Rep.': 'Republic of the Congo',
                             'Cote d\'Ivoire': 'Cote d\'Ivoire',
                             'Egypt, Arab Rep.': 'Egypt',
