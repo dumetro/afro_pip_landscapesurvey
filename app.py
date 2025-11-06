@@ -1163,6 +1163,177 @@ def main():
                 )
                 st.plotly_chart(fig_donut3, use_container_width=True, key="surveillance_donut3")
     
+        # Regional Surveillance Epicurve
+        st.markdown("---")
+        st.markdown('<div class="section-header"><h3>📈 Regional Surveillance Epicurve: Processed Samples vs Positivity Rate</h3></div>', unsafe_allow_html=True)
+        
+        # Load AFRO FluNet data for regional epicurve
+        afroflunet_data = load_afroflunet_data()
+        
+        if not afroflunet_data.empty:
+            # Aggregate regional data by week
+            regional_flunet = afroflunet_data.groupby(['ISO_WEEK']).agg({
+                'SPEC_PROCESSED_NB': 'sum',
+                'SARS_COV_2_PROCESSED': 'sum',
+                'INF_ALL': 'sum',
+                'SARS_COV_2_POS': 'sum'
+            }).reset_index()
+            
+            # Calculate regional positivity rates
+            regional_flunet['Regional_Influenza_Positivity'] = (
+                regional_flunet['INF_ALL'] / regional_flunet['SPEC_PROCESSED_NB'] * 100
+            ).fillna(0)
+            
+            regional_flunet['Regional_SARS_Positivity'] = (
+                regional_flunet['SARS_COV_2_POS'] / regional_flunet['SARS_COV_2_PROCESSED'] * 100
+            ).fillna(0)
+            
+            # Create dual-axis epicurve
+            fig_epicurve = make_subplots(
+                rows=1, cols=1,
+                specs=[[{"secondary_y": True}]],
+                subplot_titles=[""]
+            )
+            
+            # Add processed samples (bar chart on primary y-axis)
+            fig_epicurve.add_trace(
+                go.Bar(
+                    x=regional_flunet['ISO_WEEK'],
+                    y=regional_flunet['SPEC_PROCESSED_NB'],
+                    name='Influenza Samples Processed',
+                    marker=dict(color='rgba(0, 147, 213, 0.7)'),  # WHO Blue with transparency
+                    yaxis='y'
+                ),
+                secondary_y=False
+            )
+            
+            fig_epicurve.add_trace(
+                go.Bar(
+                    x=regional_flunet['ISO_WEEK'],
+                    y=regional_flunet['SARS_COV_2_PROCESSED'],
+                    name='SARS-CoV-2 Samples Processed',
+                    marker=dict(color='rgba(255, 152, 0, 0.7)'),  # Orange with transparency
+                    yaxis='y'
+                ),
+                secondary_y=False
+            )
+            
+            # Add positivity rates (line charts on secondary y-axis)
+            fig_epicurve.add_trace(
+                go.Scatter(
+                    x=regional_flunet['ISO_WEEK'],
+                    y=regional_flunet['Regional_Influenza_Positivity'],
+                    mode='lines+markers',
+                    name='Influenza Positivity %',
+                    line=dict(color='#0093D5', width=3),  # WHO Blue
+                    marker=dict(size=6),
+                    yaxis='y2'
+                ),
+                secondary_y=True
+            )
+            
+            fig_epicurve.add_trace(
+                go.Scatter(
+                    x=regional_flunet['ISO_WEEK'],
+                    y=regional_flunet['Regional_SARS_Positivity'],
+                    mode='lines+markers',
+                    name='SARS-CoV-2 Positivity %',
+                    line=dict(color='#FF6B35', width=3),  # Orange-red
+                    marker=dict(size=6),
+                    yaxis='y2'
+                ),
+                secondary_y=True
+            )
+            
+            # Update layout
+            fig_epicurve.update_layout(
+                height=500,
+                title={
+                    "text": "Regional Laboratory Surveillance Trends",
+                    "font": {"size": 16, "color": "#003C71"},
+                    "x": 0.5,
+                    "xanchor": 'center'
+                },
+                font={"family": "Montserrat", "size": 12},
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="center",
+                    x=0.5
+                ),
+                barmode='group',
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
+            
+            # Set x-axis properties
+            fig_epicurve.update_xaxes(
+                title_text="Epi Week (2024)",
+                tickmode='linear',
+                tick0=1,
+                dtick=4,  # Show every 4th week
+                showgrid=True,
+                gridwidth=1,
+                gridcolor='rgba(128,128,128,0.2)'
+            )
+            
+            # Set y-axes properties
+            fig_epicurve.update_yaxes(
+                title_text="Number of Samples Processed",
+                secondary_y=False,
+                showgrid=True,
+                gridwidth=1,
+                gridcolor='rgba(128,128,128,0.2)'
+            )
+            
+            fig_epicurve.update_yaxes(
+                title_text="Positivity Rate (%)",
+                secondary_y=True,
+                showgrid=False,
+                range=[0, max(max(regional_flunet['Regional_Influenza_Positivity']), 
+                             max(regional_flunet['Regional_SARS_Positivity'])) * 1.1]
+            )
+            
+            st.plotly_chart(fig_epicurve, use_container_width=True, key="regional_surveillance_epicurve")
+            
+            # Add summary statistics
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                total_flu_samples = regional_flunet['SPEC_PROCESSED_NB'].sum()
+                st.metric(
+                    "🧪 Total Influenza Samples",
+                    f"{total_flu_samples:,.0f}",
+                    help="Total influenza samples processed across WHO AFRO region in 2024"
+                )
+            
+            with col2:
+                total_covid_samples = regional_flunet['SARS_COV_2_PROCESSED'].sum()
+                st.metric(
+                    "🦠 Total SARS-CoV-2 Samples", 
+                    f"{total_covid_samples:,.0f}",
+                    help="Total SARS-CoV-2 samples processed across WHO AFRO region in 2024"
+                )
+            
+            with col3:
+                avg_flu_positivity = regional_flunet['Regional_Influenza_Positivity'].mean()
+                st.metric(
+                    "📊 Avg Influenza Positivity",
+                    f"{avg_flu_positivity:.1f}%",
+                    help="Average influenza positivity rate across the region"
+                )
+            
+            with col4:
+                avg_covid_positivity = regional_flunet['Regional_SARS_Positivity'].mean()
+                st.metric(
+                    "📈 Avg SARS-CoV-2 Positivity",
+                    f"{avg_covid_positivity:.1f}%", 
+                    help="Average SARS-CoV-2 positivity rate across the region"
+                )
+        else:
+            st.info("Regional surveillance data is not available.")
+    
         # Vaccination Overview
         st.markdown("---")
         st.markdown('<div class="section-header"><h2>💉 Vaccination Overview</h2></div>', unsafe_allow_html=True)
