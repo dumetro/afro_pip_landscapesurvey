@@ -10,12 +10,26 @@ from datetime import datetime, date
 import warnings
 from urllib.parse import quote_plus
 import os
+import base64
 warnings.filterwarnings('ignore')
+
+# Utility function to convert image to base64
+def get_base64_image(image_path):
+    """Convert image file to base64 string for embedding in HTML"""
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except FileNotFoundError:
+        st.warning(f"Image file not found: {image_path}")
+        return ""
+    except Exception as e:
+        st.warning(f"Error loading image {image_path}: {str(e)}")
+        return ""
 
 # Page configuration
 st.set_page_config(
     page_title="WHO AFRO Influenza Landscape Survey",
-    page_icon="assets/who_logo.png",
+    page_icon="assets/whoafro_logo.png",
     layout="wide"
 )
 
@@ -532,8 +546,8 @@ def main():
     st.markdown("""
     <div class="main-header">
         <div style="display: flex; align-items: center; padding: 1rem 2rem;">
-            <div style="margin-right: 20px; background: white; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
-                🌍
+            <div style="margin-right: 20px; background: white; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; padding: 5px;">
+                <img src="data:image/png;base64,{}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: contain;">
             </div>
             <div>
                 <h1 style="margin: 0; color: white; font-size: 2.5rem; font-weight: bold;">WHO AFRO Influenza Landscape Survey Dashboard</h1>
@@ -541,7 +555,7 @@ def main():
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """.format(get_base64_image("assets/whoafro_logo.png")), unsafe_allow_html=True)
     
     # Navigation tabs
     tab1, tab2 = st.tabs(["🌍 Overview", "🗺️ Country Profile"])
