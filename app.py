@@ -29,7 +29,7 @@ def get_base64_image(image_path):
 # Page configuration
 st.set_page_config(
     page_title="WHO AFRO Influenza Landscape Survey",
-    page_icon="assets/who_logo.png",
+    page_icon="assets/whoafro_logo.png",
     layout="wide"
 )
 
