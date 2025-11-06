@@ -6,14 +6,6 @@ A comprehensive Streamlit dashboard for visualizing health indicators and influe
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.28%2B-red)
 
-## Features
-
-- 🌍 **Interactive Country Profiles**: Detailed health indicators for African countries
-- 📊 **Dynamic Visualizations**: Charts and maps for mortality, vaccination, and nutrition data
-- 🔄 **Real-time Data**: Connect to PostgreSQL database for live updates
-- 📱 **Responsive Design**: WHO-branded styling that works on all devices
-- 📈 **Time Series Analysis**: Track health indicators over time
-- 📥 **Data Export**: Download filtered data as CSV files
 
 ## Installation
 
@@ -39,7 +31,7 @@ A comprehensive Streamlit dashboard for visualizing health indicators and influe
    
    If you want to connect to a PostgreSQL database:
    
-   a. Create a PostgreSQL database named `who_afro_db`
+   a. Create a PostgreSQL database named `emp_pip`
    
    b. Update database credentials in `setup_database.py`
    
@@ -59,7 +51,7 @@ A comprehensive Streamlit dashboard for visualizing health indicators and influe
    ```toml
    [database]
    DB_HOST = "localhost"
-   DB_NAME = "who_afro_db"
+   DB_NAME = "emp_pip"
    DB_USER = "postgres"
    DB_PASSWORD = "your_password"
    DB_PORT = "5432"
@@ -74,76 +66,16 @@ A comprehensive Streamlit dashboard for visualizing health indicators and influe
 
 ### Dashboard Sections
 
-1. **Key Metrics Summary**: Overview of health indicators
-2. **Mortality & Life Expectancy**: Trends and geographical distribution
-3. **Vaccination Coverage**: Immunization rates and progress tracking
-4. **Nutrition & Food Security**: Health status indicators
-
-### Filters
-
-- **Country Selection**: View data for specific countries or all countries
-- **Date Range**: Filter data by time period
-- **Apply Filters**: Refresh data with new filter criteria
 
 ### Data Export
 
-- Download filtered health indicators as CSV
-- Download vaccination time series data as CSV
-- Data includes timestamp for version tracking
+- Download filtered survey indicators as CSV
+
 
 ## Database Schema
 
 The application expects the following PostgreSQL tables:
 
-### health_indicators
-```sql
-CREATE TABLE health_indicators (
-    id SERIAL PRIMARY KEY,
-    country_name VARCHAR(100) NOT NULL,
-    country_code VARCHAR(3),
-    life_expectancy DECIMAL(5,2),
-    infant_mortality_rate DECIMAL(6,2),
-    maternal_mortality_rate DECIMAL(8,2),
-    vaccination_coverage DECIMAL(5,2),
-    cancer_screening_rate DECIMAL(5,2),
-    tobacco_use_prevalence DECIMAL(5,2),
-    survey_year INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### vaccination_data
-```sql
-CREATE TABLE vaccination_data (
-    id SERIAL PRIMARY KEY,
-    country_name VARCHAR(100) NOT NULL,
-    survey_year INTEGER,
-    mortality_rate DECIMAL(6,3),
-    dpt_vaccination_rate DECIMAL(5,2),
-    measles_vaccination_rate DECIMAL(5,2),
-    polio_vaccination_rate DECIMAL(5,2),
-    bcg_vaccination_rate DECIMAL(5,2),
-    hepatitis_vaccination_rate DECIMAL(5,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### influenza_surveillance
-```sql
-CREATE TABLE influenza_surveillance (
-    id SERIAL PRIMARY KEY,
-    country_name VARCHAR(100) NOT NULL,
-    survey_year INTEGER,
-    surveillance_system_exists BOOLEAN,
-    laboratories_count INTEGER,
-    sentinel_sites_count INTEGER,
-    seasonal_vaccination_policy BOOLEAN,
-    pandemic_preparedness_score DECIMAL(5,2),
-    influenza_cases_reported INTEGER,
-    hospitalization_rate DECIMAL(6,3),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
 
 ## Customization
 
