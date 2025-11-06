@@ -2723,23 +2723,53 @@ def main():
                         hovertemplate='<b>Age: %{y}</b><br>Female: %{x:,.0f}k<extra></extra>'
                     ))
                     
-                    # Calculate max value for axis scaling
+                    # Calculate max value for dynamic axis scaling
                     max_pop = max(max(male_pop) if male_pop else 0, max(female_pop) if female_pop else 0)
-                    axis_max = max(1000, max_pop * 1.1)  # Ensure minimum scale of 1000k
                     
-                    # Update layout - doubled height from 160px to 320px
+                    # Determine appropriate scale based on population size
+                    if max_pop < 500:  # Use thousands (K) for smaller populations
+                        axis_max = max_pop * 1.2  # Add 20% padding
+                        scale_divisor = 1
+                        scale_label = 'K'
+                        x_title = 'Population (thousands)'
+                    else:  # Use millions (M) for larger populations
+                        axis_max = max_pop * 1.1  # Add 10% padding
+                        scale_divisor = 1000
+                        scale_label = 'M'
+                        x_title = 'Population (thousands)'
+                    
+                    # Create tick values and labels dynamically
+                    tick_positions = [-axis_max, -axis_max/2, 0, axis_max/2, axis_max]
+                    if scale_divisor == 1000:  # Millions
+                        tick_labels = [
+                            f'{axis_max/1000:.0f}M',
+                            f'{axis_max/2000:.0f}M',
+                            '0',
+                            f'{axis_max/2000:.0f}M',
+                            f'{axis_max/1000:.0f}M'
+                        ]
+                    else:  # Thousands
+                        tick_labels = [
+                            f'{axis_max:.0f}K',
+                            f'{axis_max/2:.0f}K',
+                            '0',
+                            f'{axis_max/2:.0f}K',
+                            f'{axis_max:.0f}K'
+                        ]
+                    
+                    # Update layout with dynamic scaling
                     fig.update_layout(
                         title=f'Population Pyramid - {selected_country}',
                         barmode='overlay',
-                        height=305,  # Doubled height from 160px to 320px
+                        height=305,
                         margin=dict(l=20, r=20, t=50, b=30),
                         showlegend=False,
                         xaxis=dict(
                             range=[-axis_max, axis_max],
-                            tickvals=[-axis_max, -axis_max/2, 0, axis_max/2, axis_max],
-                            ticktext=[f'{axis_max/1000:.0f}M', f'{axis_max/2000:.0f}M', '0', f'{axis_max/2000:.0f}M', f'{axis_max/1000:.0f}M'],
+                            tickvals=tick_positions,
+                            ticktext=tick_labels,
                             tickfont=dict(size=12),
-                            title='Population (thousands)'
+                            title=x_title
                         ),
                         yaxis=dict(
                             tickfont=dict(size=12),
