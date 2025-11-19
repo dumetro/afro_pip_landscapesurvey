@@ -2331,6 +2331,77 @@ def main():
                             use_container_width=True,
                             hide_index=True
                         )
+                        
+                        # Add divider and preparedness level key
+                        st.markdown("---")
+                        
+                        # Preparedness Level Key/Legend
+                        st.markdown("### 📋 Preparedness Level Classification")
+                        st.markdown("""
+                        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <thead>
+                                    <tr style="background-color: #0093D5; color: white;">
+                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Preparedness Level</th>
+                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Criteria</th>
+                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Color Code</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background-color: #f1f8e9;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #4CAF50;">🟢 Comprehensive</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            • Has PRET (Respiratory Pathogen) Plan<br>
+                                            • Conducts pandemic simulation exercises
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">GREEN</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #fff3e0;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FF9800;">🟠 Good</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            • Has PRET Plan, OR<br>
+                                            • Has other pandemic plan AND conducts simulations
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #FF9800; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">ORANGE</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #fffde7;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FFC107;">🟡 Basic</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            • Has other pandemic plan, OR<br>
+                                            • Conducts simulation exercises (but no PRET)
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #FFC107; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px;">AMBER</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #fafafa;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #757575;">⚪ Limited</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            • No PRET plan<br>
+                                            • No other pandemic plans<br>
+                                            • No simulation exercises
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #E0E0E0; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px;">GRAY</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        st.markdown("""
+                        <div style="background-color: #e3f2fd; padding: 10px; border-left: 4px solid #0093D5; margin-bottom: 20px;">
+                            <p style="margin: 0; font-size: 14px; color: #1976d2;">
+                                <strong>📌 Key:</strong> PRET = Pandemic Respiratory pathogen Emergency preparedness and response Team plan
+                            </p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
                     else:
                         st.info("No preparedness summary data available for mapping.")
                 else:
@@ -2557,6 +2628,81 @@ def main():
                             use_container_width=True,
                             hide_index=True
                         )
+                        
+                        # Add divider and compliance level key
+                        st.markdown("---")
+                        
+                        # Compliance Level Key/Legend
+                        st.markdown("### 📊 Reporting Compliance Level Classification")
+                        st.markdown("""
+                        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <thead>
+                                    <tr style="background-color: #0093D5; color: white;">
+                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Compliance Level</th>
+                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Criteria (Score)</th>
+                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Color Code</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background-color: #f1f8e9;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #4CAF50;">🟢 High Compliance</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <strong>3-4 activities:</strong><br>
+                                            • Reports to FluID + FluNet + Integrated Data, OR<br>
+                                            • Reports to FluID + FluNet + Burden Analysis, OR<br>
+                                            • All four activities implemented
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">GREEN</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #fff3e0;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FF9800;">🟠 Moderate Compliance</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <strong>2 activities:</strong><br>
+                                            • Two of: FluID reporting, FluNet reporting, Integrated datasets, or Burden analysis
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #FF9800; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">ORANGE</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #fffde7;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FFC107;">🟡 Basic Compliance</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <strong>1 activity:</strong><br>
+                                            • One of: FluID reporting, FluNet reporting, Integrated datasets, or Burden analysis
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #FFC107; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px;">AMBER</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #fafafa;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #757575;">⚪ Limited Compliance</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <strong>0 activities:</strong><br>
+                                            • No FluID reporting<br>
+                                            • No FluNet reporting<br>
+                                            • No integrated datasets<br>
+                                            • No burden analysis
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #E0E0E0; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px;">GRAY</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        st.markdown("""
+                        <div style="background-color: #e3f2fd; padding: 10px; border-left: 4px solid #0093D5; margin-bottom: 20px;">
+                            <p style="margin: 0; font-size: 14px; color: #1976d2;">
+                                <strong>📌 Key:</strong> FluID = Influenza Disease data, FluNet = Virological data, Integrated Data = Combined epidemiological and virological datasets, Burden Analysis = Disease burden studies (completed or in progress)
+                            </p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
                     else:
                         st.info("No reporting compliance data available for mapping.")
                 else:
