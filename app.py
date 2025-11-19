@@ -1177,558 +1177,8 @@ def main():
                 )
                 st.plotly_chart(fig_donut3, use_container_width=True, key="surveillance_donut3")
     
-        # Regional Surveillance Epicurve
-        st.markdown("---")
-        st.markdown('<div class="section-header"><h3>📈 Regional Surveillance Epicurve: Processed Samples vs Positivity Rate</h3></div>', unsafe_allow_html=True)
-        
-        # Load AFRO FluNet data for regional epicurve
-        afroflunet_data = load_afroflunet_data()
-        
-        if not afroflunet_data.empty:
-            # Aggregate regional data by week
-            regional_flunet = afroflunet_data.groupby(['ISO_WEEK']).agg({
-                'SPEC_PROCESSED_NB': 'sum',
-                'SARS_COV_2_PROCESSED': 'sum',
-                'INF_ALL': 'sum',
-                'SARS_COV_2_POS': 'sum'
-            }).reset_index()
-            
-            # Calculate regional positivity rates
-            regional_flunet['Regional_Influenza_Positivity'] = (
-                regional_flunet['INF_ALL'] / regional_flunet['SPEC_PROCESSED_NB'] * 100
-            ).fillna(0)
-            
-            regional_flunet['Regional_SARS_Positivity'] = (
-                regional_flunet['SARS_COV_2_POS'] / regional_flunet['SARS_COV_2_PROCESSED'] * 100
-            ).fillna(0)
-            
-            # Create dual-axis epicurve
-            fig_epicurve = make_subplots(
-                rows=1, cols=1,
-                specs=[[{"secondary_y": True}]],
-                subplot_titles=[""]
-            )
-            
-            # Add processed samples (bar chart on primary y-axis)
-            fig_epicurve.add_trace(
-                go.Bar(
-                    x=regional_flunet['ISO_WEEK'],
-                    y=regional_flunet['SPEC_PROCESSED_NB'],
-                    name='Influenza Samples Processed',
-                    marker=dict(color='rgba(0, 147, 213, 0.7)'),  # WHO Blue with transparency
-                    yaxis='y'
-                ),
-                secondary_y=False
-            )
-            
-            fig_epicurve.add_trace(
-                go.Bar(
-                    x=regional_flunet['ISO_WEEK'],
-                    y=regional_flunet['SARS_COV_2_PROCESSED'],
-                    name='SARS-CoV-2 Samples Processed',
-                    marker=dict(color='rgba(255, 152, 0, 0.7)'),  # Orange with transparency
-                    yaxis='y'
-                ),
-                secondary_y=False
-            )
-            
-            # Add positivity rates (line charts on secondary y-axis)
-            fig_epicurve.add_trace(
-                go.Scatter(
-                    x=regional_flunet['ISO_WEEK'],
-                    y=regional_flunet['Regional_Influenza_Positivity'],
-                    mode='lines+markers',
-                    name='Influenza Positivity %',
-                    line=dict(color='#0093D5', width=3),  # WHO Blue
-                    marker=dict(size=6),
-                    yaxis='y2'
-                ),
-                secondary_y=True
-            )
-            
-            fig_epicurve.add_trace(
-                go.Scatter(
-                    x=regional_flunet['ISO_WEEK'],
-                    y=regional_flunet['Regional_SARS_Positivity'],
-                    mode='lines+markers',
-                    name='SARS-CoV-2 Positivity %',
-                    line=dict(color='#FF6B35', width=3),  # Orange-red
-                    marker=dict(size=6),
-                    yaxis='y2'
-                ),
-                secondary_y=True
-            )
-            
-            # Update layout
-            fig_epicurve.update_layout(
-                height=500,
-                title={
-                    "text": "Regional Laboratory Surveillance Trends",
-                    "font": {"size": 16, "color": "#003C71"},
-                    "x": 0.5,
-                    "xanchor": 'center'
-                },
-                font={"family": "Montserrat", "size": 12},
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=1.02,
-                    xanchor="center",
-                    x=0.5
-                ),
-                barmode='group',
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)'
-            )
-            
-            # Set x-axis properties
-            fig_epicurve.update_xaxes(
-                title_text="Epi Week (2024)",
-                tickmode='linear',
-                tick0=1,
-                dtick=4,  # Show every 4th week
-                showgrid=True,
-                gridwidth=1,
-                gridcolor='rgba(128,128,128,0.2)'
-            )
-            
-            # Set y-axes properties
-            fig_epicurve.update_yaxes(
-                title_text="Number of Samples Processed",
-                secondary_y=False,
-                showgrid=True,
-                gridwidth=1,
-                gridcolor='rgba(128,128,128,0.2)'
-            )
-            
-            fig_epicurve.update_yaxes(
-                title_text="Positivity Rate (%)",
-                secondary_y=True,
-                showgrid=False,
-                range=[0, max(max(regional_flunet['Regional_Influenza_Positivity']), 
-                             max(regional_flunet['Regional_SARS_Positivity'])) * 1.1]
-            )
-            
-            st.plotly_chart(fig_epicurve, use_container_width=True, key="regional_surveillance_epicurve")
-            
-            # Add summary statistics
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                total_flu_samples = regional_flunet['SPEC_PROCESSED_NB'].sum()
-                st.metric(
-                    "🧪 Total Influenza Samples",
-                    f"{total_flu_samples:,.0f}",
-                    help="Total influenza samples processed across WHO AFRO region in 2024"
-                )
-            
-            with col2:
-                total_covid_samples = regional_flunet['SARS_COV_2_PROCESSED'].sum()
-                st.metric(
-                    "🦠 Total SARS-CoV-2 Samples", 
-                    f"{total_covid_samples:,.0f}",
-                    help="Total SARS-CoV-2 samples processed across WHO AFRO region in 2024"
-                )
-            
-            with col3:
-                avg_flu_positivity = regional_flunet['Regional_Influenza_Positivity'].mean()
-                st.metric(
-                    "📊 Avg Influenza Positivity",
-                    f"{avg_flu_positivity:.1f}%",
-                    help="Average influenza positivity rate across the region"
-                )
-            
-            with col4:
-                avg_covid_positivity = regional_flunet['Regional_SARS_Positivity'].mean()
-                st.metric(
-                    "📈 Avg SARS-CoV-2 Positivity",
-                    f"{avg_covid_positivity:.1f}%", 
-                    help="Average SARS-CoV-2 positivity rate across the region"
-                )
-        else:
-            st.info("Regional surveillance data is not available.")
-    
-        # Vaccination Overview
-        st.markdown("---")
-        st.markdown('<div class="section-header"><h2>💉 Vaccination Overview</h2></div>', unsafe_allow_html=True)
-        
-        # Filter data for vaccination category (category_id = 9)
-        vaccination_data = landscape_data[landscape_data['category_id'] == 9]
-        
-        if not vaccination_data.empty:
-            # Create three columns: Map Key on far left, Map in center, Table on right
-            vax_col_key, vax_col_map, vax_col_table = st.columns([1, 3, 2])
-            
-            with vax_col_map:
-                st.subheader("🗺️ Influenza Vaccination Policy Implementation Map")
-                
-                # Prepare data for vaccination map visualization
-                vax_map_data = vaccination_data.groupby(['country', 'indicator', 'response']).size().reset_index(name='count')
-                
-                # Create a summary for each country showing their vaccination policy status
-                vax_country_summary = []
-                for country in vax_map_data['country'].unique():
-                    country_data = vax_map_data[vax_map_data['country'] == country]
-                    
-                    # Get vaccination policy indicators
-                    formal_policy_data = country_data[
-                        country_data['indicator'] == 'Does the country have a formal seasonal influenza vaccination policy?'
-                    ]
-                    public_sector_data = country_data[
-                        country_data['indicator'] == 'Has seasonal influenza vaccine been introduced in the public sector? Year introduced;'
-                    ]
-                    private_sector_data = country_data[
-                        country_data['indicator'] == 'Has seasonal influenza vaccine been introduced in the private sector?'
-                    ]
-                    
-                    # Determine policy status
-                    has_formal_policy = False
-                    if not formal_policy_data.empty:
-                        responses = formal_policy_data['response'].str.lower()
-                        has_formal_policy = any(resp in ['yes', 'y'] for resp in responses if pd.notna(resp))
-                    
-                    # Determine public sector introduction
-                    has_public_sector = False
-                    public_year = "N/A"
-                    if not public_sector_data.empty:
-                        for response in public_sector_data['response']:
-                            if pd.notna(response) and str(response).lower() not in ['no', 'n/a', 'no response', 'nan']:
-                                has_public_sector = True
-                                # Try to extract year information
-                                response_str = str(response)
-                                if any(char.isdigit() for char in response_str):
-                                    public_year = response_str
-                                break
-                    
-                    # Determine private sector introduction
-                    has_private_sector = False
-                    if not private_sector_data.empty:
-                        responses = private_sector_data['response'].str.lower()
-                        has_private_sector = any(resp in ['yes', 'y'] for resp in responses if pd.notna(resp))
-                    
-                    # Create overall vaccination implementation status
-                    if has_formal_policy and (has_public_sector or has_private_sector):
-                        if has_public_sector and has_private_sector:
-                            overall_status = "Full Implementation"
-                        elif has_public_sector:
-                            overall_status = "Public Sector Only"
-                        else:
-                            overall_status = "Private Sector Only"
-                    elif has_formal_policy:
-                        overall_status = "Policy Only"
-                    elif has_public_sector or has_private_sector:
-                        overall_status = "Limited Implementation"
-                    else:
-                        overall_status = "No Implementation"
-                    
-                    # Get risk groups information
-                    risk_groups_data = vaccination_data[
-                        (vaccination_data['country'] == country) & 
-                        (vaccination_data['indicator'] == 'What are the recommended risk groups for influenza vaccine?')
-                    ]
-                    risk_groups = "Not specified"
-                    if not risk_groups_data.empty and not risk_groups_data['response'].isna().all():
-                        risk_groups = "; ".join([str(resp) for resp in risk_groups_data['response'] if pd.notna(resp)])
-                    
-                    # Get vaccine formulation
-                    formulation_data = vaccination_data[
-                        (vaccination_data['country'] == country) & 
-                        (vaccination_data['indicator'] == 'Which vaccine formulation is used in the country: Northern/Southern hemisphere vaccine?')
-                    ]
-                    formulation = "Not specified"
-                    if not formulation_data.empty and not formulation_data['response'].isna().all():
-                        formulation = str(formulation_data['response'].iloc[0])
-                    
-                    vax_country_summary.append({
-                        'country': country,
-                        'formal_policy': "Yes" if has_formal_policy else "No",
-                        'public_sector': "Yes" if has_public_sector else "No",
-                        'private_sector': "Yes" if has_private_sector else "No",
-                        'public_year': public_year,
-                        'overall_status': overall_status,
-                        'risk_groups': risk_groups[:100] + "..." if len(risk_groups) > 100 else risk_groups,
-                        'formulation': formulation
-                    })
-                
-                vax_country_df = pd.DataFrame(vax_country_summary)
-                
-                # Add all African countries to ensure proper background colors
-                all_african_countries = [
-                    'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
-                    'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
-                    'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
-                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
-                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
-                    'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
-                    'Somalia', 'South Africa', 'South Sudan', 'Sudan','Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
-                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire'
-                ]
-                
-                # Create complete African vaccination map data
-                complete_vax_map_data = []
-                our_countries = vax_country_df['country'].tolist()
-                
-                for african_country in all_african_countries:
-                    if african_country in our_countries:
-                        # Country in our survey - use existing data
-                        existing_data = vax_country_df[vax_country_df['country'] == african_country].iloc[0]
-                        complete_vax_map_data.append(existing_data.to_dict())
-                    else:
-                        # Country not in our survey - white background
-                        complete_vax_map_data.append({
-                            'country': african_country,
-                            'formal_policy': 'Not Surveyed',
-                            'public_sector': 'Not Surveyed',
-                            'private_sector': 'Not Surveyed',
-                            'public_year': 'Not Surveyed',
-                            'overall_status': 'Not Surveyed',
-                            'risk_groups': 'Not Surveyed',
-                            'formulation': 'Not Surveyed'
-                        })
-                
-                complete_vax_country_df = pd.DataFrame(complete_vax_map_data)
-                
-                # Create choropleth map for vaccination implementation
-                # WHO GIS Guidelines: Use clear, accessible colors
-                vax_color_map = {
-                    "Full Implementation": "#0093D5",      # WHO Blue - full implementation
-                    "Public Sector Only": "#4CAF50",       # Green - public sector
-                    "Private Sector Only": "#FF9800",      # Orange - private sector
-                    "Policy Only": "#9C27B0",              # Purple - policy without implementation
-                    "Limited Implementation": "#FFC107",    # Amber - limited implementation
-                    "No Implementation": "#E0E0E0",         # Light gray - no implementation/insufficient data
-                    "Not Surveyed": "#FFFFFF"              # White - not in survey
-                }
-                
-                # Create the vaccination map
-                fig_vax_map = px.choropleth(
-                    complete_vax_country_df,
-                    locations='country',
-                    locationmode='country names',
-                    color='overall_status',
-                    hover_name='country',
-                    hover_data={
-                        'formal_policy': True,
-                        'public_sector': True,
-                        'private_sector': True,
-                        'public_year': True,
-                        'formulation': True,
-                        'overall_status': False
-                    },
-                    color_discrete_map=vax_color_map,
-                    title="WHO AFRO: Influenza Vaccination Policy Implementation Status",
-                    labels={'overall_status': 'Implementation Status'}
-                )
-                
-                # Update layout according to WHO GIS Guidelines
-                fig_vax_map.update_layout(
-                    font={"family": "Montserrat", "size": 12},
-                    title={
-                        "font": {"size": 16, "color": "#003C71"},
-                        "x": 0.5,
-                        "xanchor": 'center'
-                    },
-                    geo={
-                        'scope': 'africa',
-                        'projection_type': 'natural earth',
-                        'showframe': False,
-                        'showcoastlines': True,
-                        'coastlinecolor': "#CCCCCC",
-                        'showland': True,
-                        'landcolor': '#F5F5F5',
-                        'bgcolor': 'white'
-                    },
-                    height=500,
-                    legend={
-                        "orientation": "h",
-                        "yanchor": "bottom",
-                        "y": -0.1,
-                        "xanchor": "center",
-                        "x": 0.5,
-                        "bgcolor": "rgba(255,255,255,0.8)",
-                        "bordercolor": "#CCCCCC",
-                        "borderwidth": 1
-                    }
-                )
-                
-                # Custom hover template for vaccination map
-                fig_vax_map.update_traces(
-                    hovertemplate='<b>%{hovertext}</b><br>' +
-                                 'Formal Policy: %{customdata[0]}<br>' +
-                                 'Public Sector: %{customdata[1]}<br>' +
-                                 'Private Sector: %{customdata[2]}<br>' +
-                                 'Public Year: %{customdata[3]}<br>' +
-                                 'Formulation: %{customdata[4]}<br>' +
-                                 '<extra></extra>'
-                )
-                
-                st.plotly_chart(fig_vax_map, use_container_width=True, key="vaccination_map")
-            
-            with vax_col_key:
-                # Vaccination Map Legend and Key Information - Vertical layout on far left
-                st.markdown("""
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #0093D5; margin-top: 60px;">
-                    <h4 style="color: #003C71; margin-top: 0; margin-bottom: 15px; text-align: center;">🗝️ Map Key</h4>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #0093D5; font-size: 14px;">●</span> 
-                            <span style="font-size: 11px;">Full Implementation</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #4CAF50; font-size: 14px;">●</span> 
-                            <span style="font-size: 11px;">Public Sector Only</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #FF9800; font-size: 14px;">●</span> 
-                            <span style="font-size: 11px;">Private Sector Only</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #9C27B0; font-size: 14px;">●</span> 
-                            <span style="font-size: 11px;">Policy Only</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #FFC107; font-size: 14px;">●</span> 
-                            <span style="font-size: 11px;">Limited Implementation</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #E0E0E0; font-size: 14px;">●</span> 
-                            <span style="font-size: 11px;">Insufficient Data</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #FFFFFF; font-size: 14px; border: 1px solid #ccc;">●</span> 
-                            <span style="font-size: 11px;">Not Surveyed</span>
-                        </div>
-                    </div>
-                    <p style="margin-bottom: 0; font-size: 10px; color: #666; margin-top: 12px; text-align: center;">
-                        <i>WHO GIS Guidelines</i>
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-            with vax_col_table:
-                st.subheader("📊 Vaccination Implementation Summary")
-                
-                # Calculate comprehensive vaccination metrics
-                
-                # 1. Countries with formal vaccination policy
-                formal_policy_yes = vaccination_data[
-                    (vaccination_data['indicator'] == 'Does the country have a formal seasonal influenza vaccination policy?') &
-                    (vaccination_data['response'].str.lower() == 'yes')
-                ]
-                total_countries_formal_policy = len(formal_policy_yes)
-                
-                # 2. Countries with public sector implementation
-                public_sector_data = vaccination_data[
-                    (vaccination_data['indicator'] == 'Has seasonal influenza vaccine been introduced in the public sector? Year introduced;') &
-                    (~vaccination_data['response'].str.lower().isin(['no', 'n/a', 'no response', 'nan']))
-                ]
-                total_countries_public = len(public_sector_data)
-                
-                # 3. Countries with private sector implementation
-                private_sector_yes = vaccination_data[
-                    (vaccination_data['indicator'] == 'Has seasonal influenza vaccine been introduced in the private sector?') &
-                    (vaccination_data['response'].str.lower() == 'yes')
-                ]
-                total_countries_private = len(private_sector_yes)
-                
-                # 4. Countries with hemisphere vaccine formulation (excluding negative responses)
-                hemisphere_vaccine_data = vaccination_data[
-                    (vaccination_data['indicator'] == 'Which vaccine formulation is used in the country: Northern/Southern hemisphere vaccine?') &
-                    (~vaccination_data['response'].str.lower().isin(['no', 'non', 'no response', 'n/a', 'nan'])) &
-                    (vaccination_data['response'].notna())
-                ]
-                total_countries_with_hemisphere_vaccine = len(hemisphere_vaccine_data)
-                
-                # 5. Countries using Southern hemisphere vaccine (for reference)
-                southern_hemisphere = vaccination_data[
-                    (vaccination_data['indicator'] == 'Which vaccine formulation is used in the country: Northern/Southern hemisphere vaccine?') &
-                    (vaccination_data['response'].str.contains('Southern', case=False, na=False))
-                ]
-                total_southern_hemisphere = len(southern_hemisphere)
-                
-                # 6. Most common risk groups
-                risk_groups_data = vaccination_data[
-                    vaccination_data['indicator'] == 'What are the recommended risk groups for influenza vaccine?'
-                ]
-                
-                # Display key vaccination metrics
-                st.markdown("**Implementation Overview:**")
-                
-                # First row of metrics
-                vax_metrics_row1_col1, vax_metrics_row1_col2 = st.columns(2)
-                with vax_metrics_row1_col1:
-                    st.metric(
-                        "📋 Countries with Formal Policy", 
-                        total_countries_formal_policy,
-                        help="Countries with formal seasonal influenza vaccination policy"
-                    )
-                with vax_metrics_row1_col2:
-                    st.metric(
-                        "🏥 Countries with Public Sector", 
-                        total_countries_public,
-                        help="Countries with vaccine introduced in public sector"
-                    )
-                
-                # Second row of metrics
-                vax_metrics_row2_col1, vax_metrics_row2_col2 = st.columns(2)
-                with vax_metrics_row2_col1:
-                    st.metric(
-                        "🏢 Countries with Private Sector", 
-                        total_countries_private,
-                        help="Countries with vaccine introduced in private sector"
-                    )
-                with vax_metrics_row2_col2:
-                    # Calculate comprehensive implementation (either public or private)
-                    all_implementation = set(public_sector_data['country'].tolist() + private_sector_yes['country'].tolist())
-                    st.metric(
-                        "💉 Countries with Any Implementation", 
-                        len(all_implementation),
-                        help="Countries with vaccine in public or private sector"
-                    )
-                
-                # Third row of metrics
-                vax_metrics_row3_col1, vax_metrics_row3_col2 = st.columns(2)
-                with vax_metrics_row3_col1:
-                    st.metric(
-                        "🌍 Southern + Northern Hemisphere Vaccine", 
-                        total_countries_with_hemisphere_vaccine,
-                        help="Countries with specified Northern/Southern hemisphere vaccine formulation (excluding no, non, no response, n/a)"
-                    )
-                with vax_metrics_row3_col2:
-                    st.metric(
-                        "🌍 Southern Hemisphere Vaccine", 
-                        total_southern_hemisphere,
-                        help="Countries using Southern hemisphere vaccine formulation"
-                    )
-                
-                st.markdown("---")
-                
-                # Risk Groups Analysis
-                if not risk_groups_data.empty:
-                    st.markdown("**🎯 Most Common Risk Groups:**")
-                    
-                    # Extract and count risk groups
-                    all_risk_groups = []
-                    for response in risk_groups_data['response']:
-                        if pd.notna(response) and str(response).lower() not in ['n/a', 'no', 'non', 'no response', 'nan']:
-                            # Split by common delimiters and clean
-                            groups = str(response).replace(',', ';').replace('and', ';').split(';')
-                            for group in groups:
-                                clean_group = group.strip()
-                                if clean_group and len(clean_group) > 2:
-                                    all_risk_groups.append(clean_group)
-                    
-                    if all_risk_groups:
-                        risk_group_counts = pd.Series(all_risk_groups).value_counts()
-                        for group, count in risk_group_counts.head(3).items():
-                            st.markdown(f"• **{group}**: {count} countries")
-                    else:
-                        st.markdown("• No risk group data available")
-                
-        else:
-            st.warning("No vaccination data available in the dataset.")
-    
-        # Laboratory Capacity Overview
+
+           # Laboratory Capacity Overview
         st.markdown("---")
         st.markdown('<div class="section-header"><h2>🔬 Laboratory Capacity Overview</h2></div>', unsafe_allow_html=True)
         
@@ -2165,251 +1615,7 @@ def main():
         else:
             st.warning("No laboratory capacity data available in the dataset.")
     
-        # Respiratory Pathogens Preparedness Plans
-        st.markdown("---")
-        st.markdown('<div class="section-header"><h2>🦠 Respiratory Pathogens Preparedness Plans</h2></div>', unsafe_allow_html=True)
-        
-        # Filter data for pandemic preparedness and response (category_id=10)
-        preparedness_data = landscape_data[landscape_data['category_id'] == 10]
-        
-        if not preparedness_data.empty:
-            # Create two columns for metrics and visualizations
-            prep_col1, prep_col2 = st.columns([1, 2])
-            
-            with prep_col1:
-                st.markdown("### Key Preparedness Metrics")
-                
-                # Metric 1: Countries with PRET plans
-                pret_data = preparedness_data[
-                    (preparedness_data['indicator'] == 'Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?') &
-                    (preparedness_data['response'].str.lower() == 'yes')
-                ]
-                pret_count = len(pret_data)
-                st.markdown(f"""
-                <div class="metric-card">
-                    <h3 style="color: #0093D5; margin: 0;">PRET Plans</h3>
-                    <h2 style="margin: 0;">{pret_count} countries</h2>
-                    <p style="margin: 0; color: #666;">with respiratory pathogen preparedness plans</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Metric 2: Countries with other pandemic plans
-                other_plans_data = preparedness_data[
-                    (preparedness_data['indicator'] == 'Does the country have another pandemic preparedness plan available?') &
-                    (preparedness_data['response'].str.lower() == 'yes')
-                ]
-                other_plans_count = len(other_plans_data)
-                st.markdown(f"""
-                <div class="metric-card">
-                    <h3 style="color: #4CAF50; margin: 0;">Other Pandemic Plans</h3>
-                    <h2 style="margin: 0;">{other_plans_count} countries</h2>
-                    <p style="margin: 0; color: #666;">with alternative preparedness plans</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Metric 3: Pandemic simulation exercises
-                simulation_data = preparedness_data[
-                    (preparedness_data['indicator'] == 'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?') &
-                    (preparedness_data['response'].str.lower() == 'yes')
-                ]
-                simulation_count = len(simulation_data)
-                st.markdown(f"""
-                <div class="metric-card">
-                    <h3 style="color: #FF9800; margin: 0;">Simulation Exercises</h3>
-                    <h2 style="margin: 0;">{simulation_count} countries</h2>
-                    <p style="margin: 0; color: #666;">conduct pandemic simulations</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with prep_col2:
-                st.markdown("### Preparedness Plans Implementation")
-                
-                # Create a map showing preparedness status
-                if 'country' in preparedness_data.columns:
-                    # Aggregate preparedness data by country
-                    country_prep_summary = []
-                    
-                    for country in preparedness_data['country'].unique():
-                        country_data = preparedness_data[preparedness_data['country'] == country]
-                        
-                        # Check for PRET plan
-                        has_pret = len(country_data[
-                            (country_data['indicator'] == 'Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?') &
-                            (country_data['response'].str.lower() == 'yes')
-                        ]) > 0
-                        
-                        # Check for other plans
-                        has_other = len(country_data[
-                            (country_data['indicator'] == 'Does the country have another pandemic preparedness plan available?') &
-                            (country_data['response'].str.lower() == 'yes')
-                        ]) > 0
-                        
-                        # Check for simulations
-                        has_simulation = len(country_data[
-                            (country_data['indicator'] == 'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?') &
-                            (country_data['response'].str.lower() == 'yes')
-                        ]) > 0
-                        
-                        # Determine preparedness level
-                        if has_pret and has_simulation:
-                            prep_level = "Comprehensive"
-                            prep_score = 4
-                        elif has_pret or (has_other and has_simulation):
-                            prep_level = "Good"
-                            prep_score = 3
-                        elif has_other or has_simulation:
-                            prep_level = "Basic"
-                            prep_score = 2
-                        else:
-                            prep_level = "Limited"
-                            prep_score = 1
-                        
-                        country_prep_summary.append({
-                            'country': country,
-                            'preparedness_level': prep_level,
-                            'preparedness_score': prep_score,
-                            'has_pret': has_pret,
-                            'has_other': has_other,
-                            'has_simulation': has_simulation
-                        })
-                    
-                    prep_summary_df = pd.DataFrame(country_prep_summary)
-                    
-                    if not prep_summary_df.empty:
-                        # Create choropleth map
-                        fig_prep_map = px.choropleth(
-                            prep_summary_df,
-                            locations='country',
-                            locationmode='country names',
-                            color='preparedness_score',
-                            hover_name='country',
-                            hover_data={
-                                'preparedness_level': True,
-                                'preparedness_score': False,
-                                'has_pret': True,
-                                'has_other': True,
-                                'has_simulation': True
-                            },
-                            color_continuous_scale=[
-                                [0, '#E0E0E0'],    # Limited - Gray
-                                [0.33, '#FFC107'], # Basic - Amber
-                                [0.66, '#FF9800'], # Good - Orange
-                                [1, '#4CAF50']     # Comprehensive - Green
-                            ],
-                            title="Pandemic Preparedness Status by Country",
-                            labels={'preparedness_score': 'Preparedness Level'}
-                        )
-                        
-                        fig_prep_map.update_layout(
-                            title_font_size=16,
-                            title_x=0.5,
-                            geo=dict(
-                                scope='africa',
-                                showframe=False,
-                                showcoastlines=True,
-                                projection_type='equirectangular'
-                            ),
-                            coloraxis_colorbar=dict(
-                                title="Preparedness Level",
-                                tickvals=[1, 2, 3, 4],
-                                ticktext=["Limited", "Basic", "Good", "Comprehensive"]
-                            ),
-                            height=500
-                        )
-                        
-                        st.plotly_chart(fig_prep_map, use_container_width=True, key="preparedness_map")
-                        
-                        # Add preparedness summary table
-                        st.markdown("### Preparedness Summary")
-                        prep_display_df = prep_summary_df[['country', 'preparedness_level', 'has_pret', 'has_other', 'has_simulation']].copy()
-                        prep_display_df.columns = ['Country', 'Preparedness Level', 'PRET Plan', 'Other Plans', 'Simulations']
-                        prep_display_df = prep_display_df.sort_values('Country')
-                        
-                        # Style the table
-                        st.dataframe(
-                            prep_display_df,
-                            use_container_width=True,
-                            hide_index=True
-                        )
-                        
-                        # Add divider and preparedness level key
-                        st.markdown("---")
-                        
-                        # Preparedness Level Key/Legend
-                        st.markdown("### 📋 Preparedness Level Classification")
-                        st.markdown("""
-                        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                                <thead>
-                                    <tr style="background-color: #0093D5; color: white;">
-                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Preparedness Level</th>
-                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Criteria</th>
-                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Color Code</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr style="background-color: #f1f8e9;">
-                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #4CAF50;">🟢 Comprehensive</td>
-                                        <td style="padding: 10px; border: 1px solid #ddd;">
-                                            • Has PRET (Respiratory Pathogen) Plan<br>
-                                            • Conducts pandemic simulation exercises
-                                        </td>
-                                        <td style="padding: 10px; border: 1px solid #ddd;">
-                                            <span style="background-color: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">GREEN</span>
-                                        </td>
-                                    </tr>
-                                    <tr style="background-color: #fff3e0;">
-                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FF9800;">🟠 Good</td>
-                                        <td style="padding: 10px; border: 1px solid #ddd;">
-                                            • Has PRET Plan, OR<br>
-                                            • Has other pandemic plan AND conducts simulations
-                                        </td>
-                                        <td style="padding: 10px; border: 1px solid #ddd;">
-                                            <span style="background-color: #FF9800; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">ORANGE</span>
-                                        </td>
-                                    </tr>
-                                    <tr style="background-color: #fffde7;">
-                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FFC107;">🟡 Basic</td>
-                                        <td style="padding: 10px; border: 1px solid #ddd;">
-                                            • Has other pandemic plan, OR<br>
-                                            • Conducts simulation exercises (but no PRET)
-                                        </td>
-                                        <td style="padding: 10px; border: 1px solid #ddd;">
-                                            <span style="background-color: #FFC107; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px;">AMBER</span>
-                                        </td>
-                                    </tr>
-                                    <tr style="background-color: #fafafa;">
-                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #757575;">⚪ Limited</td>
-                                        <td style="padding: 10px; border: 1px solid #ddd;">
-                                            • No PRET plan<br>
-                                            • No other pandemic plans<br>
-                                            • No simulation exercises
-                                        </td>
-                                        <td style="padding: 10px; border: 1px solid #ddd;">
-                                            <span style="background-color: #E0E0E0; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px;">GRAY</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                        st.markdown("""
-                        <div style="background-color: #e3f2fd; padding: 10px; border-left: 4px solid #0093D5; margin-bottom: 20px;">
-                            <p style="margin: 0; font-size: 14px; color: #1976d2;">
-                                <strong>📌 Key:</strong> PRET = Pandemic Respiratory pathogen Emergency preparedness and response Team plan
-                            </p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                    else:
-                        st.info("No preparedness summary data available for mapping.")
-                else:
-                    st.info("Country information not available for preparedness mapping.")
-        else:
-            st.warning("No pandemic preparedness data available in the dataset.")
-    
-        # Respiratory Pathogens Data Reporting and Usage
+# Respiratory Pathogens Data Reporting and Usage
         st.markdown("---")
         st.markdown('<div class="section-header"><h2>📊 Respiratory Pathogens Data Reporting and Usage</h2></div>', unsafe_allow_html=True)
         
@@ -2709,7 +1915,802 @@ def main():
                     st.info("Country information not available for reporting compliance mapping.")
         else:
             st.warning("No respiratory pathogen reporting data available in the dataset.")
+
+# Respiratory Pathogens Preparedness Plans
+        st.markdown("---")
+        st.markdown('<div class="section-header"><h2>🦠 Respiratory Pathogens Preparedness Plans</h2></div>', unsafe_allow_html=True)
+        
+        # Filter data for pandemic preparedness and response (category_id=10)
+        preparedness_data = landscape_data[landscape_data['category_id'] == 10]
+        
+        if not preparedness_data.empty:
+            # Create two columns for metrics and visualizations
+            prep_col1, prep_col2 = st.columns([1, 2])
+            
+            with prep_col1:
+                st.markdown("### Key Preparedness Metrics")
+                
+                # Metric 1: Countries with PRET plans
+                pret_data = preparedness_data[
+                    (preparedness_data['indicator'] == 'Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?') &
+                    (preparedness_data['response'].str.lower() == 'yes')
+                ]
+                pret_count = len(pret_data)
+                st.markdown(f"""
+                <div class="metric-card">
+                    <h3 style="color: #0093D5; margin: 0;">PRET Plans</h3>
+                    <h2 style="margin: 0;">{pret_count} countries</h2>
+                    <p style="margin: 0; color: #666;">with respiratory pathogen preparedness plans</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Metric 2: Countries with other pandemic plans
+                other_plans_data = preparedness_data[
+                    (preparedness_data['indicator'] == 'Does the country have another pandemic preparedness plan available?') &
+                    (preparedness_data['response'].str.lower() == 'yes')
+                ]
+                other_plans_count = len(other_plans_data)
+                st.markdown(f"""
+                <div class="metric-card">
+                    <h3 style="color: #4CAF50; margin: 0;">Other Pandemic Plans</h3>
+                    <h2 style="margin: 0;">{other_plans_count} countries</h2>
+                    <p style="margin: 0; color: #666;">with alternative preparedness plans</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Metric 3: Pandemic simulation exercises
+                simulation_data = preparedness_data[
+                    (preparedness_data['indicator'] == 'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?') &
+                    (preparedness_data['response'].str.lower() == 'yes')
+                ]
+                simulation_count = len(simulation_data)
+                st.markdown(f"""
+                <div class="metric-card">
+                    <h3 style="color: #FF9800; margin: 0;">Simulation Exercises</h3>
+                    <h2 style="margin: 0;">{simulation_count} countries</h2>
+                    <p style="margin: 0; color: #666;">conduct pandemic simulations</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with prep_col2:
+                st.markdown("### Preparedness Plans Implementation")
+                
+                # Create a map showing preparedness status
+                if 'country' in preparedness_data.columns:
+                    # Aggregate preparedness data by country
+                    country_prep_summary = []
+                    
+                    for country in preparedness_data['country'].unique():
+                        country_data = preparedness_data[preparedness_data['country'] == country]
+                        
+                        # Check for PRET plan
+                        has_pret = len(country_data[
+                            (country_data['indicator'] == 'Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?') &
+                            (country_data['response'].str.lower() == 'yes')
+                        ]) > 0
+                        
+                        # Check for other plans
+                        has_other = len(country_data[
+                            (country_data['indicator'] == 'Does the country have another pandemic preparedness plan available?') &
+                            (country_data['response'].str.lower() == 'yes')
+                        ]) > 0
+                        
+                        # Check for simulations
+                        has_simulation = len(country_data[
+                            (country_data['indicator'] == 'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?') &
+                            (country_data['response'].str.lower() == 'yes')
+                        ]) > 0
+                        
+                        # Determine preparedness level
+                        if has_pret and has_simulation:
+                            prep_level = "Comprehensive"
+                            prep_score = 4
+                        elif has_pret or (has_other and has_simulation):
+                            prep_level = "Good"
+                            prep_score = 3
+                        elif has_other or has_simulation:
+                            prep_level = "Basic"
+                            prep_score = 2
+                        else:
+                            prep_level = "Limited"
+                            prep_score = 1
+                        
+                        country_prep_summary.append({
+                            'country': country,
+                            'preparedness_level': prep_level,
+                            'preparedness_score': prep_score,
+                            'has_pret': has_pret,
+                            'has_other': has_other,
+                            'has_simulation': has_simulation
+                        })
+                    
+                    prep_summary_df = pd.DataFrame(country_prep_summary)
+                    
+                    if not prep_summary_df.empty:
+                        # Create choropleth map
+                        fig_prep_map = px.choropleth(
+                            prep_summary_df,
+                            locations='country',
+                            locationmode='country names',
+                            color='preparedness_score',
+                            hover_name='country',
+                            hover_data={
+                                'preparedness_level': True,
+                                'preparedness_score': False,
+                                'has_pret': True,
+                                'has_other': True,
+                                'has_simulation': True
+                            },
+                            color_continuous_scale=[
+                                [0, '#E0E0E0'],    # Limited - Gray
+                                [0.33, '#FFC107'], # Basic - Amber
+                                [0.66, '#FF9800'], # Good - Orange
+                                [1, '#4CAF50']     # Comprehensive - Green
+                            ],
+                            title="Pandemic Preparedness Status by Country",
+                            labels={'preparedness_score': 'Preparedness Level'}
+                        )
+                        
+                        fig_prep_map.update_layout(
+                            title_font_size=16,
+                            title_x=0.5,
+                            geo=dict(
+                                scope='africa',
+                                showframe=False,
+                                showcoastlines=True,
+                                projection_type='equirectangular'
+                            ),
+                            coloraxis_colorbar=dict(
+                                title="Preparedness Level",
+                                tickvals=[1, 2, 3, 4],
+                                ticktext=["Limited", "Basic", "Good", "Comprehensive"]
+                            ),
+                            height=500
+                        )
+                        
+                        st.plotly_chart(fig_prep_map, use_container_width=True, key="preparedness_map")
+                        
+                        # Add preparedness summary table
+                        st.markdown("### Preparedness Summary")
+                        prep_display_df = prep_summary_df[['country', 'preparedness_level', 'has_pret', 'has_other', 'has_simulation']].copy()
+                        prep_display_df.columns = ['Country', 'Preparedness Level', 'PRET Plan', 'Other Plans', 'Simulations']
+                        prep_display_df = prep_display_df.sort_values('Country')
+                        
+                        # Style the table
+                        st.dataframe(
+                            prep_display_df,
+                            use_container_width=True,
+                            hide_index=True
+                        )
+                        
+                        # Add divider and preparedness level key
+                        st.markdown("---")
+                        
+                        # Preparedness Level Key/Legend
+                        st.markdown("### 📋 Preparedness Level Classification")
+                        st.markdown("""
+                        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <thead>
+                                    <tr style="background-color: #0093D5; color: white;">
+                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Preparedness Level</th>
+                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Criteria</th>
+                                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Color Code</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background-color: #f1f8e9;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #4CAF50;">🟢 Comprehensive</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            • Has PRET (Respiratory Pathogen) Plan<br>
+                                            • Conducts pandemic simulation exercises
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">GREEN</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #fff3e0;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FF9800;">🟠 Good</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            • Has PRET Plan, OR<br>
+                                            • Has other pandemic plan AND conducts simulations
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #FF9800; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">ORANGE</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #fffde7;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FFC107;">🟡 Basic</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            • Has other pandemic plan, OR<br>
+                                            • Conducts simulation exercises (but no PRET)
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #FFC107; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px;">AMBER</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #fafafa;">
+                                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #757575;">⚪ Limited</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            • No PRET plan<br>
+                                            • No other pandemic plans<br>
+                                            • No simulation exercises
+                                        </td>
+                                        <td style="padding: 10px; border: 1px solid #ddd;">
+                                            <span style="background-color: #E0E0E0; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px;">GRAY</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        st.markdown("""
+                        <div style="background-color: #e3f2fd; padding: 10px; border-left: 4px solid #0093D5; margin-bottom: 20px;">
+                            <p style="margin: 0; font-size: 14px; color: #1976d2;">
+                                <strong>📌 Key:</strong> PRET = Pandemic Respiratory pathogen Emergency preparedness and response Team plan
+                            </p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                    else:
+                        st.info("No preparedness summary data available for mapping.")
+                else:
+                    st.info("Country information not available for preparedness mapping.")
+        else:
+            st.warning("No pandemic preparedness data available in the dataset.")
+
+        # Vaccination Overview
+        st.markdown("---")
+        st.markdown('<div class="section-header"><h2>💉 Vaccination Overview</h2></div>', unsafe_allow_html=True)
+        
+        # Filter data for vaccination category (category_id = 9)
+        vaccination_data = landscape_data[landscape_data['category_id'] == 9]
+        
+        if not vaccination_data.empty:
+            # Create three columns: Map Key on far left, Map in center, Table on right
+            vax_col_key, vax_col_map, vax_col_table = st.columns([1, 3, 2])
+            
+            with vax_col_map:
+                st.subheader("🗺️ Influenza Vaccination Policy Implementation Map")
+                
+                # Prepare data for vaccination map visualization
+                vax_map_data = vaccination_data.groupby(['country', 'indicator', 'response']).size().reset_index(name='count')
+                
+                # Create a summary for each country showing their vaccination policy status
+                vax_country_summary = []
+                for country in vax_map_data['country'].unique():
+                    country_data = vax_map_data[vax_map_data['country'] == country]
+                    
+                    # Get vaccination policy indicators
+                    formal_policy_data = country_data[
+                        country_data['indicator'] == 'Does the country have a formal seasonal influenza vaccination policy?'
+                    ]
+                    public_sector_data = country_data[
+                        country_data['indicator'] == 'Has seasonal influenza vaccine been introduced in the public sector? Year introduced;'
+                    ]
+                    private_sector_data = country_data[
+                        country_data['indicator'] == 'Has seasonal influenza vaccine been introduced in the private sector?'
+                    ]
+                    
+                    # Determine policy status
+                    has_formal_policy = False
+                    if not formal_policy_data.empty:
+                        responses = formal_policy_data['response'].str.lower()
+                        has_formal_policy = any(resp in ['yes', 'y'] for resp in responses if pd.notna(resp))
+                    
+                    # Determine public sector introduction
+                    has_public_sector = False
+                    public_year = "N/A"
+                    if not public_sector_data.empty:
+                        for response in public_sector_data['response']:
+                            if pd.notna(response) and str(response).lower() not in ['no', 'n/a', 'no response', 'nan']:
+                                has_public_sector = True
+                                # Try to extract year information
+                                response_str = str(response)
+                                if any(char.isdigit() for char in response_str):
+                                    public_year = response_str
+                                break
+                    
+                    # Determine private sector introduction
+                    has_private_sector = False
+                    if not private_sector_data.empty:
+                        responses = private_sector_data['response'].str.lower()
+                        has_private_sector = any(resp in ['yes', 'y'] for resp in responses if pd.notna(resp))
+                    
+                    # Create overall vaccination implementation status
+                    if has_formal_policy and (has_public_sector or has_private_sector):
+                        if has_public_sector and has_private_sector:
+                            overall_status = "Full Implementation"
+                        elif has_public_sector:
+                            overall_status = "Public Sector Only"
+                        else:
+                            overall_status = "Private Sector Only"
+                    elif has_formal_policy:
+                        overall_status = "Policy Only"
+                    elif has_public_sector or has_private_sector:
+                        overall_status = "Limited Implementation"
+                    else:
+                        overall_status = "No Implementation"
+                    
+                    # Get risk groups information
+                    risk_groups_data = vaccination_data[
+                        (vaccination_data['country'] == country) & 
+                        (vaccination_data['indicator'] == 'What are the recommended risk groups for influenza vaccine?')
+                    ]
+                    risk_groups = "Not specified"
+                    if not risk_groups_data.empty and not risk_groups_data['response'].isna().all():
+                        risk_groups = "; ".join([str(resp) for resp in risk_groups_data['response'] if pd.notna(resp)])
+                    
+                    # Get vaccine formulation
+                    formulation_data = vaccination_data[
+                        (vaccination_data['country'] == country) & 
+                        (vaccination_data['indicator'] == 'Which vaccine formulation is used in the country: Northern/Southern hemisphere vaccine?')
+                    ]
+                    formulation = "Not specified"
+                    if not formulation_data.empty and not formulation_data['response'].isna().all():
+                        formulation = str(formulation_data['response'].iloc[0])
+                    
+                    vax_country_summary.append({
+                        'country': country,
+                        'formal_policy': "Yes" if has_formal_policy else "No",
+                        'public_sector': "Yes" if has_public_sector else "No",
+                        'private_sector': "Yes" if has_private_sector else "No",
+                        'public_year': public_year,
+                        'overall_status': overall_status,
+                        'risk_groups': risk_groups[:100] + "..." if len(risk_groups) > 100 else risk_groups,
+                        'formulation': formulation
+                    })
+                
+                vax_country_df = pd.DataFrame(vax_country_summary)
+                
+                # Add all African countries to ensure proper background colors
+                all_african_countries = [
+                    'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
+                    'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
+                    'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
+                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
+                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
+                    'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
+                    'Somalia', 'South Africa', 'South Sudan', 'Sudan','Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire'
+                ]
+                
+                # Create complete African vaccination map data
+                complete_vax_map_data = []
+                our_countries = vax_country_df['country'].tolist()
+                
+                for african_country in all_african_countries:
+                    if african_country in our_countries:
+                        # Country in our survey - use existing data
+                        existing_data = vax_country_df[vax_country_df['country'] == african_country].iloc[0]
+                        complete_vax_map_data.append(existing_data.to_dict())
+                    else:
+                        # Country not in our survey - white background
+                        complete_vax_map_data.append({
+                            'country': african_country,
+                            'formal_policy': 'Not Surveyed',
+                            'public_sector': 'Not Surveyed',
+                            'private_sector': 'Not Surveyed',
+                            'public_year': 'Not Surveyed',
+                            'overall_status': 'Not Surveyed',
+                            'risk_groups': 'Not Surveyed',
+                            'formulation': 'Not Surveyed'
+                        })
+                
+                complete_vax_country_df = pd.DataFrame(complete_vax_map_data)
+                
+                # Create choropleth map for vaccination implementation
+                # WHO GIS Guidelines: Use clear, accessible colors
+                vax_color_map = {
+                    "Full Implementation": "#0093D5",      # WHO Blue - full implementation
+                    "Public Sector Only": "#4CAF50",       # Green - public sector
+                    "Private Sector Only": "#FF9800",      # Orange - private sector
+                    "Policy Only": "#9C27B0",              # Purple - policy without implementation
+                    "Limited Implementation": "#FFC107",    # Amber - limited implementation
+                    "No Implementation": "#E0E0E0",         # Light gray - no implementation/insufficient data
+                    "Not Surveyed": "#FFFFFF"              # White - not in survey
+                }
+                
+                # Create the vaccination map
+                fig_vax_map = px.choropleth(
+                    complete_vax_country_df,
+                    locations='country',
+                    locationmode='country names',
+                    color='overall_status',
+                    hover_name='country',
+                    hover_data={
+                        'formal_policy': True,
+                        'public_sector': True,
+                        'private_sector': True,
+                        'public_year': True,
+                        'formulation': True,
+                        'overall_status': False
+                    },
+                    color_discrete_map=vax_color_map,
+                    title="WHO AFRO: Influenza Vaccination Policy Implementation Status",
+                    labels={'overall_status': 'Implementation Status'}
+                )
+                
+                # Update layout according to WHO GIS Guidelines
+                fig_vax_map.update_layout(
+                    font={"family": "Montserrat", "size": 12},
+                    title={
+                        "font": {"size": 16, "color": "#003C71"},
+                        "x": 0.5,
+                        "xanchor": 'center'
+                    },
+                    geo={
+                        'scope': 'africa',
+                        'projection_type': 'natural earth',
+                        'showframe': False,
+                        'showcoastlines': True,
+                        'coastlinecolor': "#CCCCCC",
+                        'showland': True,
+                        'landcolor': '#F5F5F5',
+                        'bgcolor': 'white'
+                    },
+                    height=500,
+                    legend={
+                        "orientation": "h",
+                        "yanchor": "bottom",
+                        "y": -0.1,
+                        "xanchor": "center",
+                        "x": 0.5,
+                        "bgcolor": "rgba(255,255,255,0.8)",
+                        "bordercolor": "#CCCCCC",
+                        "borderwidth": 1
+                    }
+                )
+                
+                # Custom hover template for vaccination map
+                fig_vax_map.update_traces(
+                    hovertemplate='<b>%{hovertext}</b><br>' +
+                                 'Formal Policy: %{customdata[0]}<br>' +
+                                 'Public Sector: %{customdata[1]}<br>' +
+                                 'Private Sector: %{customdata[2]}<br>' +
+                                 'Public Year: %{customdata[3]}<br>' +
+                                 'Formulation: %{customdata[4]}<br>' +
+                                 '<extra></extra>'
+                )
+                
+                st.plotly_chart(fig_vax_map, use_container_width=True, key="vaccination_map")
+            
+            with vax_col_key:
+                # Vaccination Map Legend and Key Information - Vertical layout on far left
+                st.markdown("""
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #0093D5; margin-top: 60px;">
+                    <h4 style="color: #003C71; margin-top: 0; margin-bottom: 15px; text-align: center;">🗝️ Map Key</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #0093D5; font-size: 14px;">●</span> 
+                            <span style="font-size: 11px;">Full Implementation</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #4CAF50; font-size: 14px;">●</span> 
+                            <span style="font-size: 11px;">Public Sector Only</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #FF9800; font-size: 14px;">●</span> 
+                            <span style="font-size: 11px;">Private Sector Only</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #9C27B0; font-size: 14px;">●</span> 
+                            <span style="font-size: 11px;">Policy Only</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #FFC107; font-size: 14px;">●</span> 
+                            <span style="font-size: 11px;">Limited Implementation</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #E0E0E0; font-size: 14px;">●</span> 
+                            <span style="font-size: 11px;">Insufficient Data</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #FFFFFF; font-size: 14px; border: 1px solid #ccc;">●</span> 
+                            <span style="font-size: 11px;">Not Surveyed</span>
+                        </div>
+                    </div>
+                    <p style="margin-bottom: 0; font-size: 10px; color: #666; margin-top: 12px; text-align: center;">
+                        <i>WHO GIS Guidelines</i>
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            with vax_col_table:
+                st.subheader("📊 Vaccination Implementation Summary")
+                
+                # Calculate comprehensive vaccination metrics
+                
+                # 1. Countries with formal vaccination policy
+                formal_policy_yes = vaccination_data[
+                    (vaccination_data['indicator'] == 'Does the country have a formal seasonal influenza vaccination policy?') &
+                    (vaccination_data['response'].str.lower() == 'yes')
+                ]
+                total_countries_formal_policy = len(formal_policy_yes)
+                
+                # 2. Countries with public sector implementation
+                public_sector_data = vaccination_data[
+                    (vaccination_data['indicator'] == 'Has seasonal influenza vaccine been introduced in the public sector? Year introduced;') &
+                    (~vaccination_data['response'].str.lower().isin(['no', 'n/a', 'no response', 'nan']))
+                ]
+                total_countries_public = len(public_sector_data)
+                
+                # 3. Countries with private sector implementation
+                private_sector_yes = vaccination_data[
+                    (vaccination_data['indicator'] == 'Has seasonal influenza vaccine been introduced in the private sector?') &
+                    (vaccination_data['response'].str.lower() == 'yes')
+                ]
+                total_countries_private = len(private_sector_yes)
+                
+                # 4. Countries with hemisphere vaccine formulation (excluding negative responses)
+                hemisphere_vaccine_data = vaccination_data[
+                    (vaccination_data['indicator'] == 'Which vaccine formulation is used in the country: Northern/Southern hemisphere vaccine?') &
+                    (~vaccination_data['response'].str.lower().isin(['no', 'non', 'no response', 'n/a', 'nan'])) &
+                    (vaccination_data['response'].notna())
+                ]
+                total_countries_with_hemisphere_vaccine = len(hemisphere_vaccine_data)
+                
+                # 5. Countries using Southern hemisphere vaccine (for reference)
+                southern_hemisphere = vaccination_data[
+                    (vaccination_data['indicator'] == 'Which vaccine formulation is used in the country: Northern/Southern hemisphere vaccine?') &
+                    (vaccination_data['response'].str.contains('Southern', case=False, na=False))
+                ]
+                total_southern_hemisphere = len(southern_hemisphere)
+                
+                # 6. Most common risk groups
+                risk_groups_data = vaccination_data[
+                    vaccination_data['indicator'] == 'What are the recommended risk groups for influenza vaccine?'
+                ]
+                
+                # Display key vaccination metrics
+                st.markdown("**Implementation Overview:**")
+                
+                # First row of metrics
+                vax_metrics_row1_col1, vax_metrics_row1_col2 = st.columns(2)
+                with vax_metrics_row1_col1:
+                    st.metric(
+                        "📋 Countries with Formal Policy", 
+                        total_countries_formal_policy,
+                        help="Countries with formal seasonal influenza vaccination policy"
+                    )
+                with vax_metrics_row1_col2:
+                    st.metric(
+                        "🏥 Countries with Public Sector", 
+                        total_countries_public,
+                        help="Countries with vaccine introduced in public sector"
+                    )
+                
+                # Second row of metrics
+                vax_metrics_row2_col1, vax_metrics_row2_col2 = st.columns(2)
+                with vax_metrics_row2_col1:
+                    st.metric(
+                        "🏢 Countries with Private Sector", 
+                        total_countries_private,
+                        help="Countries with vaccine introduced in private sector"
+                    )
+                with vax_metrics_row2_col2:
+                    # Calculate comprehensive implementation (either public or private)
+                    all_implementation = set(public_sector_data['country'].tolist() + private_sector_yes['country'].tolist())
+                    st.metric(
+                        "💉 Countries with Any Implementation", 
+                        len(all_implementation),
+                        help="Countries with vaccine in public or private sector"
+                    )
+                
+                # Third row of metrics
+                vax_metrics_row3_col1, vax_metrics_row3_col2 = st.columns(2)
+                with vax_metrics_row3_col1:
+                    st.metric(
+                        "🌍 Southern + Northern Hemisphere Vaccine", 
+                        total_countries_with_hemisphere_vaccine,
+                        help="Countries with specified Northern/Southern hemisphere vaccine formulation (excluding no, non, no response, n/a)"
+                    )
+                with vax_metrics_row3_col2:
+                    st.metric(
+                        "🌍 Southern Hemisphere Vaccine", 
+                        total_southern_hemisphere,
+                        help="Countries using Southern hemisphere vaccine formulation"
+                    )
+                
+                st.markdown("---")
+                
+                # Risk Groups Analysis
+                if not risk_groups_data.empty:
+                    st.markdown("**🎯 Most Common Risk Groups:**")
+                    
+                    # Extract and count risk groups
+                    all_risk_groups = []
+                    for response in risk_groups_data['response']:
+                        if pd.notna(response) and str(response).lower() not in ['n/a', 'no', 'non', 'no response', 'nan']:
+                            # Split by common delimiters and clean
+                            groups = str(response).replace(',', ';').replace('and', ';').split(';')
+                            for group in groups:
+                                clean_group = group.strip()
+                                if clean_group and len(clean_group) > 2:
+                                    all_risk_groups.append(clean_group)
+                    
+                    if all_risk_groups:
+                        risk_group_counts = pd.Series(all_risk_groups).value_counts()
+                        for group, count in risk_group_counts.head(3).items():
+                            st.markdown(f"• **{group}**: {count} countries")
+                    else:
+                        st.markdown("• No risk group data available")
+                
+        else:
+            st.warning("No vaccination data available in the dataset.")
     
+    # Regional Surveillance Epicurve
+        st.markdown("---")
+        st.markdown('<div class="section-header"><h3>📈 Regional Surveillance Epicurve: Processed Samples vs Positivity Rate</h3></div>', unsafe_allow_html=True)
+        
+        # Load AFRO FluNet data for regional epicurve
+        afroflunet_data = load_afroflunet_data()
+        
+        if not afroflunet_data.empty:
+            # Aggregate regional data by week
+            regional_flunet = afroflunet_data.groupby(['ISO_WEEK']).agg({
+                'SPEC_PROCESSED_NB': 'sum',
+                'SARS_COV_2_PROCESSED': 'sum',
+                'INF_ALL': 'sum',
+                'SARS_COV_2_POS': 'sum'
+            }).reset_index()
+            
+            # Calculate regional positivity rates
+            regional_flunet['Regional_Influenza_Positivity'] = (
+                regional_flunet['INF_ALL'] / regional_flunet['SPEC_PROCESSED_NB'] * 100
+            ).fillna(0)
+            
+            regional_flunet['Regional_SARS_Positivity'] = (
+                regional_flunet['SARS_COV_2_POS'] / regional_flunet['SARS_COV_2_PROCESSED'] * 100
+            ).fillna(0)
+            
+            # Create dual-axis epicurve
+            fig_epicurve = make_subplots(
+                rows=1, cols=1,
+                specs=[[{"secondary_y": True}]],
+                subplot_titles=[""]
+            )
+            
+            # Add processed samples (bar chart on primary y-axis)
+            fig_epicurve.add_trace(
+                go.Bar(
+                    x=regional_flunet['ISO_WEEK'],
+                    y=regional_flunet['SPEC_PROCESSED_NB'],
+                    name='Influenza Samples Processed',
+                    marker=dict(color='rgba(0, 147, 213, 0.7)'),  # WHO Blue with transparency
+                    yaxis='y'
+                ),
+                secondary_y=False
+            )
+            
+            fig_epicurve.add_trace(
+                go.Bar(
+                    x=regional_flunet['ISO_WEEK'],
+                    y=regional_flunet['SARS_COV_2_PROCESSED'],
+                    name='SARS-CoV-2 Samples Processed',
+                    marker=dict(color='rgba(255, 152, 0, 0.7)'),  # Orange with transparency
+                    yaxis='y'
+                ),
+                secondary_y=False
+            )
+            
+            # Add positivity rates (line charts on secondary y-axis)
+            fig_epicurve.add_trace(
+                go.Scatter(
+                    x=regional_flunet['ISO_WEEK'],
+                    y=regional_flunet['Regional_Influenza_Positivity'],
+                    mode='lines+markers',
+                    name='Influenza Positivity %',
+                    line=dict(color='#0093D5', width=3),  # WHO Blue
+                    marker=dict(size=6),
+                    yaxis='y2'
+                ),
+                secondary_y=True
+            )
+            
+            fig_epicurve.add_trace(
+                go.Scatter(
+                    x=regional_flunet['ISO_WEEK'],
+                    y=regional_flunet['Regional_SARS_Positivity'],
+                    mode='lines+markers',
+                    name='SARS-CoV-2 Positivity %',
+                    line=dict(color='#FF6B35', width=3),  # Orange-red
+                    marker=dict(size=6),
+                    yaxis='y2'
+                ),
+                secondary_y=True
+            )
+            
+            # Update layout
+            fig_epicurve.update_layout(
+                height=500,
+                title={
+                    "text": "Regional Laboratory Surveillance Trends",
+                    "font": {"size": 16, "color": "#003C71"},
+                    "x": 0.5,
+                    "xanchor": 'center'
+                },
+                font={"family": "Montserrat", "size": 12},
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="center",
+                    x=0.5
+                ),
+                barmode='group',
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
+            
+            # Set x-axis properties
+            fig_epicurve.update_xaxes(
+                title_text="Epi Week (2024)",
+                tickmode='linear',
+                tick0=1,
+                dtick=4,  # Show every 4th week
+                showgrid=True,
+                gridwidth=1,
+                gridcolor='rgba(128,128,128,0.2)'
+            )
+            
+            # Set y-axes properties
+            fig_epicurve.update_yaxes(
+                title_text="Number of Samples Processed",
+                secondary_y=False,
+                showgrid=True,
+                gridwidth=1,
+                gridcolor='rgba(128,128,128,0.2)'
+            )
+            
+            fig_epicurve.update_yaxes(
+                title_text="Positivity Rate (%)",
+                secondary_y=True,
+                showgrid=False,
+                range=[0, max(max(regional_flunet['Regional_Influenza_Positivity']), 
+                             max(regional_flunet['Regional_SARS_Positivity'])) * 1.1]
+            )
+            
+            st.plotly_chart(fig_epicurve, use_container_width=True, key="regional_surveillance_epicurve")
+            
+            # Add summary statistics
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                total_flu_samples = regional_flunet['SPEC_PROCESSED_NB'].sum()
+                st.metric(
+                    "🧪 Total Influenza Samples",
+                    f"{total_flu_samples:,.0f}",
+                    help="Total influenza samples processed across WHO AFRO region in 2024"
+                )
+            
+            with col2:
+                total_covid_samples = regional_flunet['SARS_COV_2_PROCESSED'].sum()
+                st.metric(
+                    "🦠 Total SARS-CoV-2 Samples", 
+                    f"{total_covid_samples:,.0f}",
+                    help="Total SARS-CoV-2 samples processed across WHO AFRO region in 2024"
+                )
+            
+            with col3:
+                avg_flu_positivity = regional_flunet['Regional_Influenza_Positivity'].mean()
+                st.metric(
+                    "📊 Avg Influenza Positivity",
+                    f"{avg_flu_positivity:.1f}%",
+                    help="Average influenza positivity rate across the region"
+                )
+            
+            with col4:
+                avg_covid_positivity = regional_flunet['Regional_SARS_Positivity'].mean()
+                st.metric(
+                    "📈 Avg SARS-CoV-2 Positivity",
+                    f"{avg_covid_positivity:.1f}%", 
+                    help="Average SARS-CoV-2 positivity rate across the region"
+                )
+        else:
+            st.info("Regional surveillance data is not available.")
+     
         # Response Analysis by Category and Indicator
         st.markdown("---")
         st.markdown('<div class="section-header"><h2>📋 Response Analysis by Category and Indicator</h2></div>', unsafe_allow_html=True)
