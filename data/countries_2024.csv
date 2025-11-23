@@ -1,0 +1,48 @@
+country_id,name,iso3,region,who_regions
+1,Algeria,NULL,Northern Africa,WCA
+8,Cameroon,NULL,Central Africa,WCA
+9,Central African Republic,NULL,Central Africa,WCA
+10,Chad,NULL,Central Africa,WCA
+12,Republic of the Congo,NULL,Central Africa,WCA
+14,Democratic Republic of the Congo,NULL,Central Africa,WCA
+15,Equatorial Guinea,NULL,Central Africa,WCA
+19,Gabon,NULL,Central Africa,WCA
+37,Sao Tome and Principe,NULL,Central Africa,WCA
+42,South Sudan,NULL,Central Africa,WCA
+6,Burundi,NULL,Eastern Africa,ESA
+11,Comoros,NULL,Eastern Africa,ESA
+16,Eritrea,NULL,Eastern Africa,ESA
+18,Ethiopia,NULL,Eastern Africa,ESA
+24,Kenya,NULL,Eastern Africa,ESA
+27,Madagascar,NULL,Eastern Africa,ESA
+28,Malawi,NULL,Eastern Africa,ESA
+31,Mauritius,NULL,Eastern Africa,ESA
+3,Benin,NULL,Western Africa,WCA
+5,Burkina Faso,NULL,Western Africa,WCA
+7,Cabo Verde,NULL,Western Africa,WCA
+13,Cote d'Ivoire,NULL,Western Africa,WCA
+20,Gambia,NULL,Western Africa,WCA
+21,Ghana,NULL,Western Africa,WCA
+22,Guinea,NULL,Western Africa,WCA
+23,Guinea-Bissau,NULL,Western Africa,WCA
+26,Liberia,NULL,Western Africa,WCA
+29,Mali,NULL,Western Africa,WCA
+30,Mauritania,NULL,Western Africa,WCA
+34,Niger,NULL,Western Africa,WCA
+35,Nigeria,NULL,Western Africa,WCA
+38,Senegal,NULL,Western Africa,WCA
+40,Sierra Leone,NULL,Western Africa,WCA
+44,Togo,NULL,Western Africa,WCA
+32,Mozambique,NULL,Eastern Africa,ESA
+36,Rwanda,NULL,Eastern Africa,ESA
+39,Seychelles,NULL,Eastern Africa,ESA
+43,United Republic of Tanzania,NULL,Eastern Africa,ESA
+45,Uganda,NULL,Eastern Africa,ESA
+46,Zambia,NULL,Eastern Africa,ESA
+47,Zimbabwe,NULL,Eastern Africa,ESA
+2,Angola,NULL,Central Africa,ESA
+4,Botswana,NULL,Southern Africa,ESA
+17,Eswatini,NULL,Southern Africa,ESA
+25,Lesotho,NULL,Southern Africa,ESA
+33,Namibia,NULL,Southern Africa,ESA
+41,South Africa,NULL,Southern Africa,ESA
