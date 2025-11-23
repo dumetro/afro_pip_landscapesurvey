@@ -569,7 +569,93 @@ def main():
 
     with tab1:
         # Overview Content - All existing dashboard sections
+        
+        # Load countries data for filtering
+        @st.cache_data
+        def load_countries_filter_data():
+            """Load countries data from CSV for filtering"""
+            try:
+                return pd.read_csv('data/countries_2024.csv')
+            except Exception as e:
+                st.error(f"Failed to load countries filter data: {e}")
+                return pd.DataFrame()
+        
+        countries_filter_data = load_countries_filter_data()
+        
+        # Filter Controls Section
+        st.markdown("---")
+        st.markdown('<div class="section-header"><h3>🎛️ AFRO Region Filters</h3></div>', unsafe_allow_html=True)
+        
+        # Create filter controls
+        filter_col1, filter_col2 = st.columns([1, 2])
+        
+        with filter_col1:
+            filter_type = st.radio(
+                "Select Filter Type:",
+                ["All Countries", "Regional Transmission Zones", "WHO Hubs Regions"],
+                key="overview_filter_type"
+            )
+        
+        with filter_col2:
+            selected_countries = []
+            
+            if filter_type == "All Countries":
+                # Use all countries - no additional filter needed
+                selected_countries = landscape_data['country'].unique().tolist()
+                st.info("📊 Showing data for all surveyed countries")
+                
+            elif filter_type == "Regional Transmission Zones":
+                if not countries_filter_data.empty:
+                    # Get unique regions
+                    available_regions = countries_filter_data['region'].dropna().unique()
+                    selected_region = st.selectbox(
+                        "Select Regional Transmission Zone:",
+                        available_regions,
+                        key="region_filter"
+                    )
+                    # Get countries for selected region
+                    region_countries = countries_filter_data[
+                        countries_filter_data['region'] == selected_region
+                    ]['name'].tolist()
+                    # Filter to only countries that exist in our survey data
+                    selected_countries = [c for c in region_countries if c in landscape_data['country'].unique()]
+                    st.info(f"📊 Showing data for {len(selected_countries)} countries in {selected_region}")
+                else:
+                    st.warning("⚠️ Countries filter data not available")
+                    selected_countries = landscape_data['country'].unique().tolist()
+                    
+            elif filter_type == "WHO Hubs Regions":
+                if not countries_filter_data.empty:
+                    # Get unique WHO regions
+                    available_who_regions = countries_filter_data['who_regions'].dropna().unique()
+                    selected_who_region = st.selectbox(
+                        "Select WHO Hub Region:",
+                        available_who_regions,
+                        key="who_region_filter"
+                    )
+                    # Get countries for selected WHO region
+                    who_region_countries = countries_filter_data[
+                        countries_filter_data['who_regions'] == selected_who_region
+                    ]['name'].tolist()
+                    # Filter to only countries that exist in our survey data
+                    selected_countries = [c for c in who_region_countries if c in landscape_data['country'].unique()]
+                    st.info(f"📊 Showing data for {len(selected_countries)} countries in {selected_who_region} WHO region")
+                else:
+                    st.warning("⚠️ Countries filter data not available")
+                    selected_countries = landscape_data['country'].unique().tolist()
+        
+        # Apply the filter to landscape_data
+        if selected_countries:
+            landscape_data = landscape_data[landscape_data['country'].isin(selected_countries)]
+            
+            # Also filter the population and flunet data if they have country columns
+            # We'll need to update these data loading functions as well
+            st.success(f"✅ Data filtered to {len(selected_countries)} countries: {', '.join(selected_countries[:5])}{' ...' if len(selected_countries) > 5 else ''}")
+        else:
+            st.warning("⚠️ No countries selected. Showing all data.")
+        
         # Regional Demographics and Economic Overview
+        st.markdown("---")
         st.markdown('<div class="section-header"><h2>🌍 Regional Demographics and Economic Overview</h2></div>', unsafe_allow_html=True)
     
         # Filter data for demographic and economic categories
