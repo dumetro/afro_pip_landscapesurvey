@@ -1116,7 +1116,7 @@ def main():
                     )
                 with metrics_row3_col2:
                     st.metric(
-                        "🔗 Integrated COVID-19 & Influenza", 
+                        "🔗 Integrated Sars-Cov-2 & Influenza", 
                         total_countries_integrated,
                         help="Countries with integrated influenza and SARS-CoV-2 sentinel surveillance"
                     )
