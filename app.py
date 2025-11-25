@@ -766,6 +766,86 @@ def main():
             </div>
             """.format(avg_mortality_100k, avg_mortality_1000), unsafe_allow_html=True)
         
+        # PIP HLIP III Progress Key Indicators
+        st.markdown("---")
+        st.markdown('<div class="section-header"><h2>📈 PIP HLIP III Progress Key Indicators</h2></div>', unsafe_allow_html=True)
+        
+        # Filter data for PIP HLIP III indicators (you may need to adjust category filters based on your data structure)
+        pip_hlip_data = landscape_data  # Placeholder - adjust based on your specific PIP HLIP III categories
+        
+        if not pip_hlip_data.empty:
+            # Create key indicators layout
+            pip_col1, pip_col2, pip_col3 = st.columns(3)
+            
+            with pip_col1:
+                st.markdown("""
+                <div class="metric-card">
+                    <h3 style="color: #0093D5; margin-bottom: 15px;">🎯 Policy & Plans</h3>
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <span style="font-size: 24px; margin-right: 10px;">📊</span>
+                        <div>
+                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
+                            <small style="color: #666;">Overall Implementation Rate</small>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <span style="font-size: 24px; margin-right: 10px;">🏆</span>
+                        <div>
+                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
+                            <small style="color: #666;">Countries Meeting Targets</small>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with pip_col2:
+                st.markdown("""
+                <div class="metric-card">
+                    <h3 style="color: #0093D5; margin-bottom: 15px;">🔬 Collaborative Surveillance (GISRS)</h3>
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <span style="font-size: 24px; margin-right: 10px;">🧪</span>
+                        <div>
+                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
+                            <small style="color: #666;">Laboratory Enhancement</small>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <span style="font-size: 24px; margin-right: 10px;">📡</span>
+                        <div>
+                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
+                            <small style="color: #666;">Surveillance Systems</small>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with pip_col3:
+                st.markdown("""
+                <div class="metric-card">
+                    <h3 style="color: #0093D5; margin-bottom: 15px;">🤝 Access to Counter-measures</h3>
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <span style="font-size: 24px; margin-right: 10px;">🌐</span>
+                        <div>
+                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
+                            <small style="color: #666;">Regional Collaboration</small>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <span style="font-size: 24px; margin-right: 10px;">📋</span>
+                        <div>
+                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
+                            <small style="color: #666;">Policy Implementation</small>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Additional PIP HLIP III specific visualizations can be added here
+            st.info("📌 Countries supported for Output 2 through PIP PC 2023-2024 – Zimbabwe, Liberia, Guinea, South Sudan, Nigeria, Niger, Chad, Cabo Verde, Gabon, Angola and Sao Tome et Principe")
+            
+        else:
+            st.warning("No PIP HLIP III data available in the dataset.")
+        
         # Surveillance (SARI & ILI): Regional Overview
         st.markdown("---")
         st.markdown('<div class="section-header"><h2>🗺️ Surveillance (SARI & ILI): Regional Overview</h2></div>', unsafe_allow_html=True)
@@ -1751,9 +1831,9 @@ def main():
                 integrated_count = len(integrated_data)
                 st.markdown(f"""
                 <div class="metric-card">
-                    <h3 style="color: #FF9800; margin: 0;">Integrated Datasets</h3>
+                    <h3 style="color: #FF9800; margin: 0;">Integrated (FluID + FluNet) Datasets</h3>
                     <h2 style="margin: 0;">{integrated_count} countries</h2>
-                    <p style="margin: 0; color: #666;">have integrated surveillance datasets</p>
+                    <p style="margin: 0; color: #666;">have integrated epidemiological and virological sentinel surveillance datasets</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -1765,7 +1845,7 @@ def main():
                 burden_count = len(burden_data)
                 st.markdown(f"""
                 <div class="metric-card">
-                    <h3 style="color: #9C27B0; margin: 0;">Burden Analysis</h3>
+                    <h3 style="color: #9C27B0; margin: 0;">Burden Of Disease Estimation</h3>
                     <h2 style="margin: 0;">{burden_count} countries</h2>
                     <p style="margin: 0; color: #666;">completed or conducting burden studies</p>
                 </div>
@@ -1800,16 +1880,10 @@ def main():
                             (country_data['response'].str.lower() == 'yes')
                         ]) > 0
                         
-                        # Check for burden analysis
-                        has_burden = len(country_data[
-                            (country_data['indicator'] == 'Has the country performed a burden of disease analysis?') &
-                            (country_data['response'].str.lower().isin(['yes', 'in progress']))
-                        ]) > 0
-                        
                         # Determine reporting compliance level
-                        compliance_score = sum([reports_fluid, reports_flunet, has_integrated, has_burden])
+                        compliance_score = sum([reports_fluid, reports_flunet, has_integrated])
                         
-                        if compliance_score >= 3:
+                        if compliance_score == 3:
                             compliance_level = "High Compliance"
                             compliance_color = 4
                         elif compliance_score == 2:
@@ -1829,7 +1903,6 @@ def main():
                             'reports_fluid': reports_fluid,
                             'reports_flunet': reports_flunet,
                             'has_integrated': has_integrated,
-                            'has_burden': has_burden,
                             'numeric_score': compliance_score
                         })
                     
@@ -1849,7 +1922,6 @@ def main():
                                 'reports_fluid': True,
                                 'reports_flunet': True,
                                 'has_integrated': True,
-                                'has_burden': True,
                                 'numeric_score': True
                             },
                             color_continuous_scale=[
@@ -1910,8 +1982,8 @@ def main():
                         
                         # Add detailed reporting table
                         st.markdown("### Detailed Reporting Status")
-                        reporting_display_df = reporting_summary_df[['country', 'compliance_level', 'reports_fluid', 'reports_flunet', 'has_integrated', 'has_burden']].copy()
-                        reporting_display_df.columns = ['Country', 'Compliance Level', 'FluID', 'FluNet', 'Integrated Data', 'Burden Analysis']
+                        reporting_display_df = reporting_summary_df[['country', 'compliance_level', 'reports_fluid', 'reports_flunet', 'has_integrated']].copy()
+                        reporting_display_df.columns = ['Country', 'Compliance Level', 'FluID', 'FluNet', 'Integrated (FluID + FluNet) Data']
                         reporting_display_df = reporting_display_df.sort_values('Country')
                         
                         # Style the table
@@ -1940,10 +2012,8 @@ def main():
                                     <tr style="background-color: #f1f8e9;">
                                         <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #4CAF50;">🟢 High Compliance</td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
-                                            <strong>3-4 activities:</strong><br>
-                                            • Reports to FluID + FluNet + Integrated Data, OR<br>
-                                            • Reports to FluID + FluNet + Burden Analysis, OR<br>
-                                            • All four activities implemented
+                                            <strong>All 3 activities:</strong><br>
+                                            • Reports to FluID + FluNet + Integrated (FluID + FluNet) Data
                                         </td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
                                             <span style="background-color: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">GREEN</span>
@@ -1953,7 +2023,7 @@ def main():
                                         <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FF9800;">🟠 Moderate Compliance</td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
                                             <strong>2 activities:</strong><br>
-                                            • Two of: FluID reporting, FluNet reporting, Integrated datasets, or Burden analysis
+                                            • Two of: FluID reporting, FluNet reporting, or Integrated (FluID + FluNet) datasets
                                         </td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
                                             <span style="background-color: #FF9800; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">ORANGE</span>
@@ -1963,7 +2033,7 @@ def main():
                                         <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FFC107;">🟡 Basic Compliance</td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
                                             <strong>1 activity:</strong><br>
-                                            • One of: FluID reporting, FluNet reporting, Integrated datasets, or Burden analysis
+                                            • One of: FluID reporting, FluNet reporting, or Integrated (FluID + FluNet) datasets
                                         </td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
                                             <span style="background-color: #FFC107; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px;">AMBER</span>
@@ -1976,7 +2046,7 @@ def main():
                                             • No FluID reporting<br>
                                             • No FluNet reporting<br>
                                             • No integrated datasets<br>
-                                            • No burden analysis
+                                            • No BOD estimates
                                         </td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
                                             <span style="background-color: #E0E0E0; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px;">GRAY</span>
@@ -1990,7 +2060,7 @@ def main():
                         st.markdown("""
                         <div style="background-color: #e3f2fd; padding: 10px; border-left: 4px solid #0093D5; margin-bottom: 20px;">
                             <p style="margin: 0; font-size: 14px; color: #1976d2;">
-                                <strong>📌 Key:</strong> FluID = Influenza Disease data, FluNet = Virological data, Integrated Data = Combined epidemiological and virological datasets, Burden Analysis = Disease burden studies (completed or in progress)
+                                <strong>📌 Key:</strong> FluID = Influenza epidemiological data, FluNet = Virological data, Integrated Data = Combined epidemiological and virological datasets
                             </p>
                         </div>
                         """, unsafe_allow_html=True)
@@ -2038,7 +2108,7 @@ def main():
                 other_plans_count = len(other_plans_data)
                 st.markdown(f"""
                 <div class="metric-card">
-                    <h3 style="color: #4CAF50; margin: 0;">Other Pandemic Plans</h3>
+                    <h3 style="color: #4CAF50; margin: 0;">Influenza-specific and/or multihazard Plans</h3>
                     <h2 style="margin: 0;">{other_plans_count} countries</h2>
                     <p style="margin: 0; color: #666;">with alternative preparedness plans</p>
                 </div>
@@ -2087,7 +2157,7 @@ def main():
                             (country_data['response'].str.lower() == 'yes')
                         ]) > 0
                         
-                        # Determine preparedness level
+                        # Determine preparedness level and assign arbitrary score for mapping
                         if has_pret and has_simulation:
                             prep_level = "Comprehensive"
                             prep_score = 4
@@ -2199,7 +2269,7 @@ def main():
                                         <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FF9800;">🟠 Good</td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
                                             • Has PRET Plan, OR<br>
-                                            • Has other pandemic plan AND conducts simulations
+                                            • Has Influenza-specific and/or multihazard Plan AND conducts simulations
                                         </td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
                                             <span style="background-color: #FF9800; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">ORANGE</span>
@@ -2208,7 +2278,7 @@ def main():
                                     <tr style="background-color: #fffde7;">
                                         <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #FFC107;">🟡 Basic</td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
-                                            • Has other pandemic plan, OR<br>
+                                            • Has Influenza-specific and/or multihazard Plan, OR<br>
                                             • Conducts simulation exercises (but no PRET)
                                         </td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
@@ -2219,7 +2289,7 @@ def main():
                                         <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #757575;">⚪ Limited</td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
                                             • No PRET plan<br>
-                                            • No other pandemic plans<br>
+                                            • No Influenza-specific and/or multihazard Plans<br>
                                             • No simulation exercises
                                         </td>
                                         <td style="padding: 10px; border: 1px solid #ddd;">
