@@ -778,65 +778,189 @@ def main():
             pip_col1, pip_col2, pip_col3 = st.columns(3)
             
             with pip_col1:
-                st.markdown("""
+                # Calculate Collaborative Surveillance (GISRS) metrics
+                
+                # 1. Countries with designated National Influenza Centre (NIC)
+                nic_data = landscape_data[
+                    landscape_data['indicator'] == 'Does the country have a designated National Influenza Centre (NIC)'
+                ]
+                countries_with_nic = len(nic_data[nic_data['response'].str.lower() == 'yes']) if not nic_data.empty else 0
+                
+                # 2. Countries with genomic sequencing capacity (keeping original as no mapping provided)
+                genomic_data = landscape_data[
+                    landscape_data['indicator'] == 'Does the country have genomic sequencing capacity?'
+                ]
+                countries_with_genomic = len(genomic_data[genomic_data['response'].str.lower() == 'yes']) if not genomic_data.empty else 0
+                
+                # 3. Countries with integrated epidemiological and virological surveillance
+                integrated_surv_data = landscape_data[
+                    landscape_data['indicator'] == 'Are epidemiological and virological sentinel surveillance datasets integrated?'
+                ]
+                countries_with_integrated = len(integrated_surv_data[integrated_surv_data['response'].str.lower() == 'yes']) if not integrated_surv_data.empty else 0
+                
+                # 4. Countries reporting to FluNet
+                flunet_data = landscape_data[
+                    landscape_data['indicator'] == 'Does the country report to the FluNet?'
+                ]
+                countries_flunet = len(flunet_data[flunet_data['response'].str.lower() == 'yes']) if not flunet_data.empty else 0
+                
+                # 5. Countries reporting to FluID
+                fluid_data = landscape_data[
+                    landscape_data['indicator'] == 'Does the country report to the FluID?'
+                ]
+                countries_fluid = len(fluid_data[fluid_data['response'].str.lower() == 'yes']) if not fluid_data.empty else 0
+                
+                # 6. Countries using PISA tool for seasonal influenza severity assessment
+                pisa_data = landscape_data[
+                    landscape_data['indicator'] == 'Does the country use the PISA tool to assess the severity of seasonal influenza?'
+                ]
+                countries_pisa = len(pisa_data[pisa_data['response'].str.lower() == 'yes']) if not pisa_data.empty else 0
+                
+                st.markdown(f"""
                 <div class="metric-card">
-                    <h3 style="color: #0093D5; margin-bottom: 15px;">🎯 Policy & Plans</h3>
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <span style="font-size: 24px; margin-right: 10px;">📊</span>
-                        <div>
-                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
-                            <small style="color: #666;">Overall Implementation Rate</small>
+                    <h3 style="color: #0093D5; margin-bottom: 15px;">🔬 Collaborative Surveillance (GISRS)</h3>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">🏢</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_nic}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Countries with NIC</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">🧬</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_genomic}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Genomic Sequencing</small>
+                            </div>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <span style="font-size: 24px; margin-right: 10px;">🏆</span>
-                        <div>
-                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
-                            <small style="color: #666;">Countries Meeting Targets</small>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">🔗</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_integrated}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Integrated Surveillance</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">📡</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_flunet}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Reporting to FluNet</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">📊</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_fluid}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Reporting to FluID</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">⚕️</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_pisa}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Reporting PISA Data</small>
+                            </div>
                         </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
             
             with pip_col2:
-                st.markdown("""
+                # Calculate Policy & Plans metrics
+                
+                # 1. Countries with Burden of Disease Estimations
+                bod_data = landscape_data[
+                    landscape_data['indicator'] == 'Has the country performed a burden of disease analysis?'
+                ]
+                countries_with_bod = len(bod_data[bod_data['response'].str.lower() == 'yes']) if not bod_data.empty else 0
+                
+                # 2. Countries with respiratory pathogen pandemic preparedness plans
+                prep_plan_data = landscape_data[
+                    landscape_data['indicator'] == 'Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?'
+                ]
+                countries_with_prep_plans = len(prep_plan_data[prep_plan_data['response'].str.lower() == 'yes']) if not prep_plan_data.empty else 0
+                
+                # 3. Countries who have updated their plans (Year plan last updated is not "no", "n/a", "no response")
+                plan_update_data = landscape_data[
+                    landscape_data['indicator'] == 'Year plan Last updated'
+                ]
+                if not plan_update_data.empty:
+                    excluded_responses = ['no', 'n/a', 'no response', 'none', '']
+                    countries_with_updates = len(plan_update_data[
+                        ~plan_update_data['response'].str.lower().isin(excluded_responses)
+                    ])
+                else:
+                    countries_with_updates = 0
+                
+                # 4. Countries that have exercised their pandemic preparedness plans
+                simex_data = landscape_data[
+                    landscape_data['indicator'] == 'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?'
+                ]
+                countries_with_simex = len(simex_data[simex_data['response'].str.lower() == 'yes']) if not simex_data.empty else 0
+                
+                st.markdown(f"""
                 <div class="metric-card">
-                    <h3 style="color: #0093D5; margin-bottom: 15px;">🔬 Collaborative Surveillance (GISRS)</h3>
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <span style="font-size: 24px; margin-right: 10px;">🧪</span>
-                        <div>
-                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
-                            <small style="color: #666;">Laboratory Enhancement</small>
+                    <h3 style="color: #0093D5; margin-bottom: 15px;">🎯 Policy & Plans</h3>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">📊</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_bod}</strong><br>
+                                <small style="color: #666; font-size: 10px;">BOD Estimations</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">📋</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_prep_plans}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Preparedness Plans</small>
+                            </div>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <span style="font-size: 24px; margin-right: 10px;">📡</span>
-                        <div>
-                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
-                            <small style="color: #666;">Surveillance Systems</small>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">🔄</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_updates}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Updated Plans</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">🎯</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_simex}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Simulation Exercises</small>
+                            </div>
                         </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
             
             with pip_col3:
-                st.markdown("""
+                # Calculate Access to Counter-measures metrics
+                
+                # Countries with national pandemic vaccine deployment plan (NDVPs)
+                ndvp_data = landscape_data[
+                    landscape_data['indicator'] == 'Does the country have a national pandemic vaccine deployment plan (NDVPs)?'
+                ]
+                countries_with_ndvp = len(ndvp_data[ndvp_data['response'].str.lower() == 'yes']) if not ndvp_data.empty else 0
+                
+                st.markdown(f"""
                 <div class="metric-card">
                     <h3 style="color: #0093D5; margin-bottom: 15px;">🤝 Access to Counter-measures</h3>
                     <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <span style="font-size: 24px; margin-right: 10px;">🌐</span>
+                        <span style="font-size: 24px; margin-right: 10px;">💉</span>
                         <div>
-                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
-                            <small style="color: #666;">Regional Collaboration</small>
+                            <strong style="font-size: 18px; color: #003C71;">{countries_with_ndvp}</strong><br>
+                            <small style="color: #666;">Countries with NDVPs</small>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <span style="font-size: 24px; margin-right: 10px;">📋</span>
-                        <div>
-                            <strong style="font-size: 18px; color: #003C71;">Data pending</strong><br>
-                            <small style="color: #666;">Policy Implementation</small>
-                        </div>
-                    </div>
+                    
                 </div>
                 """, unsafe_allow_html=True)
             
