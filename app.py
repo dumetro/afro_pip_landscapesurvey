@@ -3424,81 +3424,7 @@ def main():
                 
                 st.markdown("---")
                 
-                # 3. Vaccination Analysis
-                st.markdown('<div class="section-header"><h2>💉 Vaccination Analysis</h2></div>', unsafe_allow_html=True)
-                
-                # Filter by category_id == 9 for vaccination data
-                country_vaccination_data = country_data[country_data['category_id'] == 9]
-                
-                if not country_vaccination_data.empty:
-                    # Convert to list to split into columns
-                    vaccination_items = list(country_vaccination_data.iterrows())
-                    
-                    # Split items into three columns
-                    items_per_col = len(vaccination_items) // 3
-                    remainder = len(vaccination_items) % 3
-                    
-                    # Distribute items evenly with remainder going to first columns
-                    col1_items = vaccination_items[:items_per_col + (1 if remainder > 0 else 0)]
-                    col2_start = len(col1_items)
-                    col2_items = vaccination_items[col2_start:col2_start + items_per_col + (1 if remainder > 1 else 0)]
-                    col3_items = vaccination_items[col2_start + len(col2_items):]
-                    
-                    col1, col2, col3 = st.columns(3)
-                    
-                    with col1:
-                        for _, row in col1_items:
-                            indicator = row['indicator']
-                            response = row['response']
-                            st.markdown(f"""
-                            <div class="metric-card" style="margin-bottom: 10px;">
-                                <div style="display: flex; align-items: center;">
-                                    <span style="font-size: 20px; margin-right: 10px;">💉</span>
-                                    <div style="flex: 1;">
-                                        <small style="color: #666; font-size: 12px;">{indicator}</small><br>
-                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
-                                    </div>
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
-                    with col2:
-                        for _, row in col2_items:
-                            indicator = row['indicator']
-                            response = row['response']
-                            st.markdown(f"""
-                            <div class="metric-card" style="margin-bottom: 10px;">
-                                <div style="display: flex; align-items: center;">
-                                    <span style="font-size: 20px; margin-right: 10px;">💉</span>
-                                    <div style="flex: 1;">
-                                        <small style="color: #666; font-size: 12px;">{indicator}</small><br>
-                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
-                                    </div>
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
-                    with col3:
-                        for _, row in col3_items:
-                            indicator = row['indicator']
-                            response = row['response']
-                            st.markdown(f"""
-                            <div class="metric-card" style="margin-bottom: 10px;">
-                                <div style="display: flex; align-items: center;">
-                                    <span style="font-size: 20px; margin-right: 10px;">💉</span>
-                                    <div style="flex: 1;">
-                                        <small style="color: #666; font-size: 12px;">{indicator}</small><br>
-                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
-                                    </div>
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                else:
-                    st.info("No vaccination data available for this country.")
-                
-                st.markdown("---")
-                
-                # 4. Laboratory Capacity
+                # 3. Laboratory Capacity
                 st.markdown('<div class="section-header"><h2>🔬 Laboratory Capacity</h2></div>', unsafe_allow_html=True)
                 
                 # Filter by category_id == 6 for laboratory capacity data
@@ -3593,8 +3519,233 @@ def main():
                 else:
                     st.info("No laboratory capacity data available for this country.")
                 
-                # Epicurve: Tested Samples vs Positivity Rate for Influenza and SARS-CoV-2
-                st.markdown("#### 📊 Surveillance Epicurve: Tested Samples vs Positivity Rate")
+                st.markdown("---")
+                
+                # 4. Respiratory Pathogens Data Reporting and Usage
+                st.markdown('<div class="section-header"><h2>📊 Respiratory Pathogens Data Reporting and Usage</h2></div>', unsafe_allow_html=True)
+                
+                # Filter by category_id == 8 for data reporting and usage
+                country_reporting_data = country_data[country_data['category_id'] == 8]
+                
+                if not country_reporting_data.empty:
+                    # Define the indicators to display
+                    base_indicators = [
+                        ('Does the country report to the FluID?', 'Reports to FluID', '📋'),
+                        ('Does the country report to the FluNet?', 'Reports to FluNet', '🌐'),
+                        ('Does the country use the PISA tool to assess the severity of seasonal influenza?', 'Uses PISA tools for assessing seasonal influenza severity', '🔧'),
+                        ('Has the country performed a burden of disease analysis?', 'Has the country performed a burden of disease analysis?', '📊')
+                    ]
+                    
+                    # Check if burden of disease analysis was performed
+                    bod_indicator = country_reporting_data[country_reporting_data['indicator'] == 'Has the country performed a burden of disease analysis?']
+                    bod_performed = bod_indicator['response'].iloc[0] if not bod_indicator.empty else "No"
+                    
+                    # Add conditional indicators if BOD analysis was performed
+                    if str(bod_performed).lower() == 'yes':
+                        base_indicators.extend([
+                            ('What year was it performed?', 'Year of BOD analysis', '📅'),
+                            ('What was the estimated burden?', 'What was the estimated burden?', '📈')
+                        ])
+                    
+                    # Create dynamic columns based on number of indicators
+                    num_indicators = len(base_indicators)
+                    if num_indicators <= 3:
+                        cols = st.columns(3)
+                    else:
+                        # Create two rows of 3 columns each
+                        cols_row1 = st.columns(3)
+                        if num_indicators > 3:
+                            cols_row2 = st.columns(3)
+                    
+                    # Display indicators
+                    for i, (indicator_name, display_name, icon) in enumerate(base_indicators):
+                        # Find the response for this indicator
+                        indicator_data = country_reporting_data[country_reporting_data['indicator'] == indicator_name]
+                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                        
+                        # Determine which column to use
+                        if num_indicators <= 3:
+                            col = cols[i]
+                        else:
+                            if i < 3:
+                                col = cols_row1[i]
+                            else:
+                                col = cols_row2[i - 3]
+                        
+                        with col:
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                else:
+                    st.info("No respiratory pathogens data reporting information available for this country.")
+                
+                st.markdown("---")
+                
+                # 5. Respiratory Pathogens Preparedness Plans
+                st.markdown('<div class="section-header"><h2>🦠 Respiratory Pathogens Preparedness Plans</h2></div>', unsafe_allow_html=True)
+                
+                # Filter by category_id == 10 for preparedness plans
+                country_preparedness_data = country_data[country_data['category_id'] == 10]
+                
+                if not country_preparedness_data.empty:
+                    # Define the 3 specific indicators to display
+                    indicators_map = {
+                        'Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?': ('Respiratory Pandemic Preparedness plan PRET', '📋'),
+                        'Year plan Last updated': ('Last Year updated?', '📅'),
+                        'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?': ('Conducted Simex', '🎯')
+                    }
+                    
+                    # Create 3-column layout (1 card per column)
+                    col1, col2, col3 = st.columns(3)
+                    
+                    # Get indicators list and assign one to each column
+                    indicators_list = list(indicators_map.keys())
+                    
+                    with col1:
+                        indicator_name = indicators_list[0]
+                        # Find the response for this indicator
+                        indicator_data = country_preparedness_data[country_preparedness_data['indicator'] == indicator_name]
+                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                        display_name, icon = indicators_map[indicator_name]
+                        
+                        st.markdown(f"""
+                        <div class="metric-card" style="margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                <div style="flex: 1;">
+                                    <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                    <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        indicator_name = indicators_list[1]
+                        # Find the response for this indicator
+                        indicator_data = country_preparedness_data[country_preparedness_data['indicator'] == indicator_name]
+                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                        display_name, icon = indicators_map[indicator_name]
+                        
+                        st.markdown(f"""
+                        <div class="metric-card" style="margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                <div style="flex: 1;">
+                                    <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                    <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col3:
+                        indicator_name = indicators_list[2]
+                        # Find the response for this indicator
+                        indicator_data = country_preparedness_data[country_preparedness_data['indicator'] == indicator_name]
+                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
+                        display_name, icon = indicators_map[indicator_name]
+                        
+                        st.markdown(f"""
+                        <div class="metric-card" style="margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
+                                <div style="flex: 1;">
+                                    <small style="color: #666; font-size: 12px;">{display_name}</small><br>
+                                    <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.info("No respiratory pathogens preparedness data available for this country.")
+                
+                st.markdown("---")
+                
+                # 6. Vaccination Analysis
+                st.markdown('<div class="section-header"><h2>💉 Vaccination Analysis</h2></div>', unsafe_allow_html=True)
+                
+                # Filter by category_id == 9 for vaccination data
+                country_vaccination_data = country_data[country_data['category_id'] == 9]
+                
+                if not country_vaccination_data.empty:
+                    # Convert to list to split into columns
+                    vaccination_items = list(country_vaccination_data.iterrows())
+                    
+                    # Split items into three columns
+                    items_per_col = len(vaccination_items) // 3
+                    remainder = len(vaccination_items) % 3
+                    
+                    # Distribute items evenly with remainder going to first columns
+                    col1_items = vaccination_items[:items_per_col + (1 if remainder > 0 else 0)]
+                    col2_start = len(col1_items)
+                    col2_items = vaccination_items[col2_start:col2_start + items_per_col + (1 if remainder > 1 else 0)]
+                    col3_items = vaccination_items[col2_start + len(col2_items):]
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        for _, row in col1_items:
+                            indicator = row['indicator']
+                            response = row['response']
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">💉</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{indicator}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        for _, row in col2_items:
+                            indicator = row['indicator']
+                            response = row['response']
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">💉</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{indicator}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    
+                    with col3:
+                        for _, row in col3_items:
+                            indicator = row['indicator']
+                            response = row['response']
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="font-size: 20px; margin-right: 10px;">💉</span>
+                                    <div style="flex: 1;">
+                                        <small style="color: #666; font-size: 12px;">{indicator}</small><br>
+                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                else:
+                    st.info("No vaccination data available for this country.")
+                
+                st.markdown("---")
+                
+                # 7. Surveillance Epicurve: Tested Samples vs Positivity Rate
+                st.markdown('<div class="section-header"><h2>📊 Surveillance Epicurve: Tested Samples vs Positivity Rate</h2></div>', unsafe_allow_html=True)
                 
                 # Load AFRO FluNet data
                 afroflunet_data = load_afroflunet_data()
@@ -3703,156 +3854,7 @@ def main():
                 
                 st.markdown("---")
                 
-                # 5. Respiratory Pathogens Preparedness Plans
-                st.markdown('<div class="section-header"><h2>🦠 Respiratory Pathogens Preparedness Plans</h2></div>', unsafe_allow_html=True)
-                
-                # Filter by category_id == 10 for preparedness plans
-                country_preparedness_data = country_data[country_data['category_id'] == 10]
-                
-                if not country_preparedness_data.empty:
-                    # Define the 3 specific indicators to display
-                    indicators_map = {
-                        'Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?': ('Respiratory Pandemic Preparedness plan PRET', '📋'),
-                        'Year plan Last updated': ('Last Year updated?', '📅'),
-                        'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?': ('Conducted Simex', '🎯')
-                    }
-                    
-                    # Create 3-column layout (1 card per column)
-                    col1, col2, col3 = st.columns(3)
-                    
-                    # Get indicators list and assign one to each column
-                    indicators_list = list(indicators_map.keys())
-                    
-                    with col1:
-                        indicator_name = indicators_list[0]
-                        # Find the response for this indicator
-                        indicator_data = country_preparedness_data[country_preparedness_data['indicator'] == indicator_name]
-                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
-                        display_name, icon = indicators_map[indicator_name]
-                        
-                        st.markdown(f"""
-                        <div class="metric-card" style="margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center;">
-                                <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
-                                <div style="flex: 1;">
-                                    <small style="color: #666; font-size: 12px;">{display_name}</small><br>
-                                    <strong style="font-size: 16px; color: #003C71;">{response}</strong>
-                                </div>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with col2:
-                        indicator_name = indicators_list[1]
-                        # Find the response for this indicator
-                        indicator_data = country_preparedness_data[country_preparedness_data['indicator'] == indicator_name]
-                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
-                        display_name, icon = indicators_map[indicator_name]
-                        
-                        st.markdown(f"""
-                        <div class="metric-card" style="margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center;">
-                                <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
-                                <div style="flex: 1;">
-                                    <small style="color: #666; font-size: 12px;">{display_name}</small><br>
-                                    <strong style="font-size: 16px; color: #003C71;">{response}</strong>
-                                </div>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with col3:
-                        indicator_name = indicators_list[2]
-                        # Find the response for this indicator
-                        indicator_data = country_preparedness_data[country_preparedness_data['indicator'] == indicator_name]
-                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
-                        display_name, icon = indicators_map[indicator_name]
-                        
-                        st.markdown(f"""
-                        <div class="metric-card" style="margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center;">
-                                <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
-                                <div style="flex: 1;">
-                                    <small style="color: #666; font-size: 12px;">{display_name}</small><br>
-                                    <strong style="font-size: 16px; color: #003C71;">{response}</strong>
-                                </div>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                else:
-                    st.info("No respiratory pathogens preparedness data available for this country.")
-                
-                st.markdown("---")
-                
-                # 6. Respiratory Pathogens Data Reporting and Usage
-                st.markdown('<div class="section-header"><h2>📊 Respiratory Pathogens Data Reporting and Usage</h2></div>', unsafe_allow_html=True)
-                
-                # Filter by category_id == 8 for data reporting and usage
-                country_reporting_data = country_data[country_data['category_id'] == 8]
-                
-                if not country_reporting_data.empty:
-                    # Define the indicators to display
-                    base_indicators = [
-                        ('Does the country report to the FluID?', 'Reports to FluID', '📋'),
-                        ('Does the country report to the FluNet?', 'Reports to FluNet', '🌐'),
-                        ('Does the country use the PISA tool to assess the severity of seasonal influenza?', 'Uses PISA tools for assessing seasonal influenza severity', '🔧'),
-                        ('Has the country performed a burden of disease analysis?', 'Has the country performed a burden of disease analysis?', '📊')
-                    ]
-                    
-                    # Check if burden of disease analysis was performed
-                    bod_indicator = country_reporting_data[country_reporting_data['indicator'] == 'Has the country performed a burden of disease analysis?']
-                    bod_performed = bod_indicator['response'].iloc[0] if not bod_indicator.empty else "No"
-                    
-                    # Add conditional indicators if BOD analysis was performed
-                    if str(bod_performed).lower() == 'yes':
-                        base_indicators.extend([
-                            ('What year was it performed?', 'Year of BOD analysis', '📅'),
-                            ('What was the estimated burden?', 'What was the estimated burden?', '📈')
-                        ])
-                    
-                    # Create dynamic columns based on number of indicators
-                    num_indicators = len(base_indicators)
-                    if num_indicators <= 3:
-                        cols = st.columns(3)
-                    else:
-                        # Create two rows of 3 columns each
-                        cols_row1 = st.columns(3)
-                        if num_indicators > 3:
-                            cols_row2 = st.columns(3)
-                    
-                    # Display indicators
-                    for i, (indicator_name, display_name, icon) in enumerate(base_indicators):
-                        # Find the response for this indicator
-                        indicator_data = country_reporting_data[country_reporting_data['indicator'] == indicator_name]
-                        response = indicator_data['response'].iloc[0] if not indicator_data.empty else "No data"
-                        
-                        # Determine which column to use
-                        if num_indicators <= 3:
-                            col = cols[i]
-                        else:
-                            if i < 3:
-                                col = cols_row1[i]
-                            else:
-                                col = cols_row2[i - 3]
-                        
-                        with col:
-                            st.markdown(f"""
-                            <div class="metric-card" style="margin-bottom: 10px;">
-                                <div style="display: flex; align-items: center;">
-                                    <span style="font-size: 20px; margin-right: 10px;">{icon}</span>
-                                    <div style="flex: 1;">
-                                        <small style="color: #666; font-size: 12px;">{display_name}</small><br>
-                                        <strong style="font-size: 16px; color: #003C71;">{response}</strong>
-                                    </div>
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                else:
-                    st.info("No respiratory pathogens data reporting information available for this country.")
-                
-                st.markdown("---")
-                
-                # 7. Survey Detailed Exploration
+                # 8. Survey Detailed Exploration
                 st.markdown('<div class="section-header"><h2>📋 Survey Detail Exploration</h2></div>', unsafe_allow_html=True)
                 
                 # Detailed category exploration
