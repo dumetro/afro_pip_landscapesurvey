@@ -831,7 +831,7 @@ def main():
                             <span style="font-size: 18px; margin-right: 8px;">🧬</span>
                             <div>
                                 <strong style="font-size: 15px; color: #003C71;">{countries_with_genomic}</strong><br>
-                                <small style="color: #666; font-size: 10px;">Genomic Sequencing</small>
+                                <small style="color: #666; font-size: 10px;">Genomic Sequencing Capacity</small>
                             </div>
                         </div>
                     </div>
@@ -840,7 +840,7 @@ def main():
                             <span style="font-size: 18px; margin-right: 8px;">🔗</span>
                             <div>
                                 <strong style="font-size: 15px; color: #003C71;">{countries_with_integrated}</strong><br>
-                                <small style="color: #666; font-size: 10px;">Integrated Surveillance</small>
+                                <small style="color: #666; font-size: 10px;">Integrated Surveillance datasets(FluID + FluNet)</small>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; width: 48%;">
@@ -881,7 +881,7 @@ def main():
                 
                 # 2. Countries with respiratory pathogen pandemic preparedness plans
                 prep_plan_data = landscape_data[
-                    landscape_data['indicator'] == 'Does the country have a respiratory pathogen pandemic preparedness pan (PRET)?'
+                    landscape_data['indicator'] == 'Does the country have a respiratory pathogen pandemic preparedness plan (PRET)?'
                 ]
                 countries_with_prep_plans = len(prep_plan_data[prep_plan_data['response'].str.lower() == 'yes']) if not prep_plan_data.empty else 0
                 
@@ -911,14 +911,14 @@ def main():
                             <span style="font-size: 18px; margin-right: 8px;">📊</span>
                             <div>
                                 <strong style="font-size: 15px; color: #003C71;">{countries_with_bod}</strong><br>
-                                <small style="color: #666; font-size: 10px;">BOD Estimations</small>
+                                <small style="color: #666; font-size: 10px;">Countries with Burden Of Disease Estimations</small>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; width: 48%;">
                             <span style="font-size: 18px; margin-right: 8px;">📋</span>
                             <div>
                                 <strong style="font-size: 15px; color: #003C71;">{countries_with_prep_plans}</strong><br>
-                                <small style="color: #666; font-size: 10px;">Preparedness Plans</small>
+                                <small style="color: #666; font-size: 10px;">Pandemic Preparedness Plans</small>
                             </div>
                         </div>
                     </div>
@@ -927,14 +927,14 @@ def main():
                             <span style="font-size: 18px; margin-right: 8px;">🔄</span>
                             <div>
                                 <strong style="font-size: 15px; color: #003C71;">{countries_with_updates}</strong><br>
-                                <small style="color: #666; font-size: 10px;">Updated Plans</small>
+                                <small style="color: #666; font-size: 10px;">Updated Pandemic Preparedness Plans</small>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; width: 48%;">
                             <span style="font-size: 18px; margin-right: 8px;">🎯</span>
                             <div>
                                 <strong style="font-size: 15px; color: #003C71;">{countries_with_simex}</strong><br>
-                                <small style="color: #666; font-size: 10px;">Simulation Exercises</small>
+                                <small style="color: #666; font-size: 10px;">Influenza Simulation Exercises</small>
                             </div>
                         </div>
                     </div>
@@ -946,7 +946,7 @@ def main():
                 
                 # Countries with national pandemic vaccine deployment plan (NDVPs)
                 ndvp_data = landscape_data[
-                    landscape_data['indicator'] == 'Does the country have a national pandemic vaccine deployment plan (NDVPs)?'
+                    landscape_data['indicator'] == 'Does the country have a national pandemic vaccine deployment plan (NVDPs)?'
                 ]
                 countries_with_ndvp = len(ndvp_data[ndvp_data['response'].str.lower() == 'yes']) if not ndvp_data.empty else 0
                 
@@ -957,7 +957,7 @@ def main():
                         <span style="font-size: 24px; margin-right: 10px;">💉</span>
                         <div>
                             <strong style="font-size: 18px; color: #003C71;">{countries_with_ndvp}</strong><br>
-                            <small style="color: #666;">Countries with NDVPs</small>
+                            <small style="color: #666;">Countries with National Vaccine Deployment Plans</small>
                         </div>
                     </div>
                     
