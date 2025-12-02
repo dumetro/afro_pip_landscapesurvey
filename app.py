@@ -1083,12 +1083,24 @@ def main():
                     'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
                     'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
                     'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
-                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
+                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Côte d\'Ivoire', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
                     'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
                     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
                     'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
-                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire'
+                    'Republic of the Congo', 'United Republic of Tanzania'
                 ]
+                
+                # Country name mapping for Plotly compatibility
+                country_name_mapping = {
+                    'Ivory Coast': 'Côte d\'Ivoire',
+                    'Cote d\'Ivoire': 'Côte d\'Ivoire',
+                    'Democratic Republic of Congo': 'Democratic Republic of the Congo',
+                    'Congo': 'Republic of the Congo',
+                    'Tanzania': 'United Republic of Tanzania'
+                }
+                
+                # Apply country name mapping to survey data
+                country_df['country'] = country_df['country'].map(lambda x: country_name_mapping.get(x, x))
                 
                 # Create complete African map data
                 complete_map_data = []
@@ -1602,12 +1614,22 @@ def main():
                     'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
                     'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
                     'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
-                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
+                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Côte d\'Ivoire', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
                     'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
                     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
                     'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
-                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire'
+                    'Republic of the Congo', 'United Republic of Tanzania'
                 ]
+                
+                # Apply country name mapping for Plotly compatibility
+                country_name_mapping = {
+                    'Ivory Coast': 'Côte d\'Ivoire',
+                    'Cote d\'Ivoire': 'Côte d\'Ivoire',
+                    'Democratic Republic of Congo': 'Democratic Republic of the Congo',
+                    'Congo': 'Republic of the Congo',
+                    'Tanzania': 'United Republic of Tanzania'
+                }
+                lab_country_df['country'] = lab_country_df['country'].map(lambda x: country_name_mapping.get(x, x))
                 
                 # Create complete African laboratory map data
                 complete_lab_map_data = []
@@ -2580,12 +2602,22 @@ def main():
                     'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
                     'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
                     'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
-                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
+                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Côte d\'Ivoire', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
                     'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
                     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
                     'Somalia', 'South Africa', 'South Sudan', 'Sudan','Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
-                    'Republic of the Congo', 'United Republic of Tanzania', 'Cote d\'Ivoire'
+                    'Republic of the Congo', 'United Republic of Tanzania'
                 ]
+                
+                # Apply country name mapping for Plotly compatibility
+                country_name_mapping = {
+                    'Ivory Coast': 'Côte d\'Ivoire',
+                    'Cote d\'Ivoire': 'Côte d\'Ivoire',
+                    'Democratic Republic of Congo': 'Democratic Republic of the Congo',
+                    'Congo': 'Republic of the Congo',
+                    'Tanzania': 'United Republic of Tanzania'
+                }
+                vax_country_df['country'] = vax_country_df['country'].map(lambda x: country_name_mapping.get(x, x))
                 
                 # Create complete African vaccination map data
                 complete_vax_map_data = []
@@ -3242,7 +3274,7 @@ def main():
                 'Ghana': '🇬🇭',
                 'Guinea': '🇬🇳',
                 'Guinea-Bissau': '🇬🇼',
-                'Ivory Coast': '🇨🇮',
+                'Côte d\'Ivoire': '🇨🇮',
                 'Kenya': '🇰🇪',
                 'Lesotho': '🇱🇸',
                 'Liberia': '🇱🇷',
@@ -3305,7 +3337,7 @@ def main():
                         country_name_mapping = {
                             'Congo, Dem. Rep.': 'Democratic Republic of the Congo',
                             'Congo, Rep.': 'Republic of the Congo',
-                            'Cote d\'Ivoire': 'Cote d\'Ivoire',
+                            'Ivory Coast': 'Côte d\'Ivoire',
                             'Egypt, Arab Rep.': 'Egypt',
                             'Gambia, The': 'Gambia',
                             'Tanzania': 'United Republic of Tanzania'
