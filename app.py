@@ -782,7 +782,7 @@ def main():
                 
                 # 1. Countries with designated National Influenza Centre (NIC)
                 nic_data = landscape_data[
-                    landscape_data['indicator'] == 'Does the country have a designated National Influenza Centre (NIC)'
+                    landscape_data['indicator'] == 'Does the country have a WHO recognized National Influenza Centre (NIC)?'
                 ]
                 countries_with_nic = len(nic_data[nic_data['response'].str.lower() == 'yes']) if not nic_data.empty else 0
                 
@@ -877,7 +877,7 @@ def main():
                 bod_data = landscape_data[
                     landscape_data['indicator'] == 'Has the country performed a burden of disease analysis?'
                 ]
-                countries_with_bod = len(bod_data[bod_data['response'].str.lower() == 'yes']) if not bod_data.empty else 0
+                countries_with_bod = len(bod_data[bod_data['response'].str.lower().isin(['yes', 'in progress'])]) if not bod_data.empty else 0
                 
                 # 2. Countries with respiratory pathogen pandemic preparedness plans
                 prep_plan_data = landscape_data[
@@ -902,6 +902,12 @@ def main():
                     landscape_data['indicator'] == 'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?'
                 ]
                 countries_with_simex = len(simex_data[simex_data['response'].str.lower() == 'yes']) if not simex_data.empty else 0
+                
+                # 5. Countries with formal seasonal influenza vaccination policy
+                seasonal_vacc_data = landscape_data[
+                    landscape_data['indicator'] == 'Does the country have a formal seasonal influenza vaccination policy?'
+                ]
+                countries_with_seasonal_vacc = len(seasonal_vacc_data[seasonal_vacc_data['response'].str.lower() == 'yes']) if not seasonal_vacc_data.empty else 0
                 
                 st.markdown(f"""
                 <div class="metric-card">
@@ -938,6 +944,17 @@ def main():
                             </div>
                         </div>
                     </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">💉</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_seasonal_vacc}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Seasonal Vaccination Plans</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; width: 48%;">
+                        </div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
             
@@ -946,7 +963,7 @@ def main():
                 
                 # Countries with national pandemic vaccine deployment plan (NDVPs)
                 ndvp_data = landscape_data[
-                    landscape_data['indicator'] == 'Does the country have a national pandemic vaccine deployment plan (NVDPs)?'
+                    landscape_data['indicator'] == 'Does the country have an updated national pandemic vaccine deployment plan for Influenza pandemic vaccine'
                 ]
                 countries_with_ndvp = len(ndvp_data[ndvp_data['response'].str.lower() == 'yes']) if not ndvp_data.empty else 0
                 
@@ -965,7 +982,7 @@ def main():
                 """, unsafe_allow_html=True)
             
             # Additional PIP HLIP III specific visualizations can be added here
-            st.info("📌 Countries supported for Output 2 through PIP PC 2023-2024 – Zimbabwe, Liberia, Guinea, South Sudan, Nigeria, Niger, Chad, Cabo Verde, Gabon, Angola and Sao Tome et Principe")
+            st.info("📌 Countries supported for Output 2 through PIP PC 2023-2024 – Angola, Cabo Verde, Chad, Gabon, Guinea, Liberia, Niger, Nigeria, Sao Tome et Principe, South Sudan and Zimbabwe")
             
         else:
             st.warning("No PIP HLIP III data available in the dataset.")
@@ -1473,7 +1490,7 @@ def main():
         st.markdown('<div class="section-header"><h2>🔬 Laboratory Capacity Overview</h2></div>', unsafe_allow_html=True)
         
         # Filter data for virological surveillance category (category_id = 6)
-        laboratory_data = landscape_data[landscape_data['category_id'] == 6]
+        laboratory_data = landscape_data[landscape_data['category_id'].isin([6, 8])]
         
         if not laboratory_data.empty:
             # Create three columns: Map Key on far left, Map in center, Table on right
@@ -1738,7 +1755,7 @@ def main():
                 
                 # 1. Countries with National Influenza Centre
                 nic_yes = laboratory_data[
-                    (laboratory_data['indicator'] == 'Does the country have a designated National Influenza Centre (NIC)') &
+                    (laboratory_data['indicator'] == 'Does the country have a WHO recognized National Influenza Centre (NIC)?') &
                     (laboratory_data['response'].str.lower() == 'yes')
                 ]
                 total_countries_nic = len(nic_yes)
@@ -1785,9 +1802,9 @@ def main():
                 lab_metrics_row1_col1, lab_metrics_row1_col2 = st.columns(2)
                 with lab_metrics_row1_col1:
                     st.metric(
-                        "🏛️ Countries with NIC", 
+                        "🏛️ Countries with a WHO designated National Influenza Centre", 
                         total_countries_nic,
-                        help="Countries with designated National Influenza Centre"
+                        help="Countries with WHO designated National Influenza Centre"
                     )
                 with lab_metrics_row1_col2:
                     st.metric(
@@ -1961,7 +1978,21 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Metric 4: Burden of Disease Analysis
+                # Metric 4: PISA Data Reporting
+                pisa_data = reporting_data[
+                    (reporting_data['indicator'] == 'Does the country use the PISA tool to assess the severity of seasonal influenza?') &
+                    (reporting_data['response'].str.lower() == 'yes')
+                ]
+                pisa_count = len(pisa_data)
+                st.markdown(f"""
+                <div class="metric-card">
+                    <h3 style="color: #E91E63; margin: 0;">PISA Data Reporting</h3>
+                    <h2 style="margin: 0;">{pisa_count} countries</h2>
+                    <p style="margin: 0; color: #666;">use PISA tool for influenza severity assessment</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Metric 5: Burden of Disease Analysis
                 burden_data = reporting_data[
                     (reporting_data['indicator'] == 'Has the country performed a burden of disease analysis?') &
                     (reporting_data['response'].str.lower().isin(['yes', 'in progress']))
@@ -3551,8 +3582,8 @@ def main():
                 # 3. Laboratory Capacity
                 st.markdown('<div class="section-header"><h2>🔬 Laboratory Capacity</h2></div>', unsafe_allow_html=True)
                 
-                # Filter by category_id == 6 for laboratory capacity data
-                country_lab_data = country_data[country_data['category_id'] == 6]
+                # Filter by category_id == 6 for laboratory capacity data and category_id == 8 for data reporting (WHO CC indicator)
+                country_lab_data = country_data[country_data['category_id'].isin([6, 8])]
                 
                 if not country_lab_data.empty:
                     # Define the 6 specific indicators to display
