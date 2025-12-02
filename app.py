@@ -818,7 +818,7 @@ def main():
                 
                 st.markdown(f"""
                 <div class="metric-card">
-                    <h3 style="color: #0093D5; margin-bottom: 15px;">🔬 Collaborative Surveillance (GISRS)</h3>
+                    <h3 style="color: #0093D5; margin-bottom: 15px;">🔬 Collaborative Surveillance (GISRS)&nbsp;&nbsp;&nbsp;&nbsp;<sup><i>Output 2</i></sup></h3>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                         <div style="display: flex; align-items: center; width: 48%;">
                             <span style="font-size: 18px; margin-right: 8px;">🏢</span>
@@ -911,7 +911,7 @@ def main():
                 
                 st.markdown(f"""
                 <div class="metric-card">
-                    <h3 style="color: #0093D5; margin-bottom: 15px;">🎯 Policy & Plans</h3>
+                    <h3 style="color: #0093D5; margin-bottom: 15px;">🎯 Policy & Plans&nbsp;&nbsp;&nbsp;&nbsp;<sup><i>Output 1</i></sup></h3>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                         <div style="display: flex; align-items: center; width: 48%;">
                             <span style="font-size: 18px; margin-right: 8px;">📊</span>
@@ -969,7 +969,7 @@ def main():
                 
                 st.markdown(f"""
                 <div class="metric-card">
-                    <h3 style="color: #0093D5; margin-bottom: 15px;">🤝 Access to Counter-measures</h3>
+                    <h3 style="color: #0093D5; margin-bottom: 15px;">🤝 Access to Counter-measures&nbsp;&nbsp;&nbsp;&nbsp;<sup><i>Output 4</i></sup></h3>
                     <div style="display: flex; align-items: center; margin-bottom: 10px;">
                         <span style="font-size: 24px; margin-right: 10px;">💉</span>
                         <div>
