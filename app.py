@@ -778,6 +778,94 @@ def main():
             pip_col1, pip_col2, pip_col3 = st.columns(3)
             
             with pip_col1:
+                # Calculate Policy & Plans metrics
+                
+                # 1. Countries with Burden of Disease Estimations
+                bod_data = landscape_data[
+                    landscape_data['indicator'] == 'Has the country performed a burden of disease analysis?'
+                ]
+                countries_with_bod = len(bod_data[bod_data['response'].str.lower().isin(['yes', 'in progress'])]) if not bod_data.empty else 0
+                
+                # 2. Countries with respiratory pathogen pandemic preparedness plans
+                prep_plan_data = landscape_data[
+                    landscape_data['indicator'] == 'Does the country have a respiratory pathogen pandemic preparedness plan (PRET)?'
+                ]
+                countries_with_prep_plans = len(prep_plan_data[prep_plan_data['response'].str.lower() == 'yes']) if not prep_plan_data.empty else 0
+                
+                # 3. Countries who have updated their plans (Year plan last updated is not "no", "n/a", "no response")
+                plan_update_data = landscape_data[
+                    landscape_data['indicator'] == 'Year plan Last updated'
+                ]
+                if not plan_update_data.empty:
+                    excluded_responses = ['no', 'n/a', 'no response', 'none', '']
+                    countries_with_updates = len(plan_update_data[
+                        ~plan_update_data['response'].str.lower().isin(excluded_responses)
+                    ])
+                else:
+                    countries_with_updates = 0
+                
+                # 4. Countries that have exercised their pandemic preparedness plans
+                simex_data = landscape_data[
+                    landscape_data['indicator'] == 'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?'
+                ]
+                countries_with_simex = len(simex_data[simex_data['response'].str.lower() == 'yes']) if not simex_data.empty else 0
+                
+                # 5. Countries with formal seasonal influenza vaccination policy
+                seasonal_vacc_data = landscape_data[
+                    landscape_data['indicator'] == 'Does the country have a formal seasonal influenza vaccination policy?'
+                ]
+                countries_with_seasonal_vacc = len(seasonal_vacc_data[seasonal_vacc_data['response'].str.lower() == 'yes']) if not seasonal_vacc_data.empty else 0
+                
+                st.markdown(f"""
+                <div class="metric-card">
+                    <h3 style="color: #0093D5; margin-bottom: 15px;">🎯 Policy & Plans&nbsp;&nbsp;&nbsp;&nbsp;<sup><i>Output 1</i></sup></h3>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">📊</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_bod}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Countries with Burden Of Disease Estimations</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">📋</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_prep_plans}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Pandemic Preparedness Plans</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">🔄</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_updates}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Updated Pandemic Preparedness Plans</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">🎯</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_simex}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Influenza Simulation Exercises</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; width: 48%;">
+                            <span style="font-size: 18px; margin-right: 8px;">💉</span>
+                            <div>
+                                <strong style="font-size: 15px; color: #003C71;">{countries_with_seasonal_vacc}</strong><br>
+                                <small style="color: #666; font-size: 10px;">Seasonal Vaccination Plans</small>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; width: 48%;">
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with pip_col2:
                 # Calculate Collaborative Surveillance (GISRS) metrics
                 
                 # 1. Countries with designated National Influenza Centre (NIC)
@@ -870,94 +958,6 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
             
-            with pip_col2:
-                # Calculate Policy & Plans metrics
-                
-                # 1. Countries with Burden of Disease Estimations
-                bod_data = landscape_data[
-                    landscape_data['indicator'] == 'Has the country performed a burden of disease analysis?'
-                ]
-                countries_with_bod = len(bod_data[bod_data['response'].str.lower().isin(['yes', 'in progress'])]) if not bod_data.empty else 0
-                
-                # 2. Countries with respiratory pathogen pandemic preparedness plans
-                prep_plan_data = landscape_data[
-                    landscape_data['indicator'] == 'Does the country have a respiratory pathogen pandemic preparedness plan (PRET)?'
-                ]
-                countries_with_prep_plans = len(prep_plan_data[prep_plan_data['response'].str.lower() == 'yes']) if not prep_plan_data.empty else 0
-                
-                # 3. Countries who have updated their plans (Year plan last updated is not "no", "n/a", "no response")
-                plan_update_data = landscape_data[
-                    landscape_data['indicator'] == 'Year plan Last updated'
-                ]
-                if not plan_update_data.empty:
-                    excluded_responses = ['no', 'n/a', 'no response', 'none', '']
-                    countries_with_updates = len(plan_update_data[
-                        ~plan_update_data['response'].str.lower().isin(excluded_responses)
-                    ])
-                else:
-                    countries_with_updates = 0
-                
-                # 4. Countries that have exercised their pandemic preparedness plans
-                simex_data = landscape_data[
-                    landscape_data['indicator'] == 'Has the country perfomed a influenza simulation exercise(s) for their pandemic preparedness plan?'
-                ]
-                countries_with_simex = len(simex_data[simex_data['response'].str.lower() == 'yes']) if not simex_data.empty else 0
-                
-                # 5. Countries with formal seasonal influenza vaccination policy
-                seasonal_vacc_data = landscape_data[
-                    landscape_data['indicator'] == 'Does the country have a formal seasonal influenza vaccination policy?'
-                ]
-                countries_with_seasonal_vacc = len(seasonal_vacc_data[seasonal_vacc_data['response'].str.lower() == 'yes']) if not seasonal_vacc_data.empty else 0
-                
-                st.markdown(f"""
-                <div class="metric-card">
-                    <h3 style="color: #0093D5; margin-bottom: 15px;">🎯 Policy & Plans&nbsp;&nbsp;&nbsp;&nbsp;<sup><i>Output 1</i></sup></h3>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <div style="display: flex; align-items: center; width: 48%;">
-                            <span style="font-size: 18px; margin-right: 8px;">📊</span>
-                            <div>
-                                <strong style="font-size: 15px; color: #003C71;">{countries_with_bod}</strong><br>
-                                <small style="color: #666; font-size: 10px;">Countries with Burden Of Disease Estimations</small>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; width: 48%;">
-                            <span style="font-size: 18px; margin-right: 8px;">📋</span>
-                            <div>
-                                <strong style="font-size: 15px; color: #003C71;">{countries_with_prep_plans}</strong><br>
-                                <small style="color: #666; font-size: 10px;">Pandemic Preparedness Plans</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <div style="display: flex; align-items: center; width: 48%;">
-                            <span style="font-size: 18px; margin-right: 8px;">🔄</span>
-                            <div>
-                                <strong style="font-size: 15px; color: #003C71;">{countries_with_updates}</strong><br>
-                                <small style="color: #666; font-size: 10px;">Updated Pandemic Preparedness Plans</small>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; width: 48%;">
-                            <span style="font-size: 18px; margin-right: 8px;">🎯</span>
-                            <div>
-                                <strong style="font-size: 15px; color: #003C71;">{countries_with_simex}</strong><br>
-                                <small style="color: #666; font-size: 10px;">Influenza Simulation Exercises</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <div style="display: flex; align-items: center; width: 48%;">
-                            <span style="font-size: 18px; margin-right: 8px;">💉</span>
-                            <div>
-                                <strong style="font-size: 15px; color: #003C71;">{countries_with_seasonal_vacc}</strong><br>
-                                <small style="color: #666; font-size: 10px;">Seasonal Vaccination Plans</small>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; width: 48%;">
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            
             with pip_col3:
                 # Calculate Access to Counter-measures metrics
                 
@@ -999,6 +999,38 @@ def main():
         ]
         surveillance_data = landscape_data[landscape_data['category'].isin(surveillance_categories)]
         
+        # Exclude countries where sentinel surveillance sites for BOTH SARI and ILI are zero
+        if not surveillance_data.empty:
+            sari_sites_by_country = surveillance_data[
+                surveillance_data['indicator'] == 'Number of SARI sentinel surveillance sites'
+            ].copy()
+            ili_sites_by_country = surveillance_data[
+                surveillance_data['indicator'] == 'Numbers of ILI sentinel surveillance sites'
+            ].copy()
+            
+            def _parse_site_count(val):
+                try:
+                    if pd.notna(val) and str(val).lower() not in ['n/a', 'no', 'non', 'no response', 'nan','0']:
+                        return int(float(str(val)))
+                except (ValueError, TypeError):
+                    pass
+                return 0
+            
+            sari_sites_by_country['site_count'] = sari_sites_by_country['response'].apply(_parse_site_count)
+            ili_sites_by_country['site_count'] = ili_sites_by_country['response'].apply(_parse_site_count)
+            
+            sari_counts = sari_sites_by_country.groupby('country')['site_count'].sum()
+            ili_counts = ili_sites_by_country.groupby('country')['site_count'].sum()
+            
+            all_countries = set(sari_counts.index) | set(ili_counts.index)
+            countries_to_exclude = {
+                c for c in all_countries
+                if sari_counts.get(c, 0) == 0 and ili_counts.get(c, 0) == 0
+            }
+            
+            if countries_to_exclude:
+                surveillance_data = surveillance_data[~surveillance_data['country'].isin(countries_to_exclude)]
+        
         if not surveillance_data.empty:
             # Create three columns: Map Key on far left, Map in center, Table on right
             col_key, col_map, col_table = st.columns([1, 3, 2])
@@ -1015,11 +1047,17 @@ def main():
                 for country in map_data['country'].unique():
                     country_data = map_data[map_data['country'] == country]
                     
-                    # Get SARI and ILI status
-                    sari_data = country_data[country_data['category'] == 'Severe acute respiratory infection (SARI) surveillance']
-                    ili_data = country_data[country_data['category'] == 'Influenza like Illness (ILI) Surveillance']
+                    # Get SARI and ILI status (exclude 'No' and other non-meaningful responses)
+                    sari_data = country_data[
+                        (country_data['category'] == 'Severe acute respiratory infection (SARI) surveillance') &
+                        (~country_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+                    ]
+                    ili_data = country_data[
+                        (country_data['category'] == 'Influenza like Illness (ILI) Surveillance') &
+                        (~country_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+                    ]
                     
-                    # Determine surveillance status based on responses
+                    # Determine surveillance status based on meaningful responses
                     sari_status = "Implemented" if len(sari_data) > 0 else "Not Reported"
                     ili_status = "Implemented" if len(ili_data) > 0 else "Not Reported"
                     
@@ -1078,15 +1116,16 @@ def main():
                 
                 country_df = pd.DataFrame(country_summary)
                 
-                # Add all African countries to ensure proper background colors
+                # Add all 47 WHO AFRO member states to ensure proper background colors
+                # (excludes EMRO countries: Djibouti, Egypt, Libya, Morocco, Somalia, Sudan, Tunisia)
                 all_african_countries = [
                     'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
                     'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
-                    'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
-                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Côte d\'Ivoire', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
-                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
+                    'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
+                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Côte d\'Ivoire', 'Kenya', 'Lesotho', 'Liberia', 
+                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Mozambique', 'Namibia', 
                     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
-                    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+                    'South Africa', 'South Sudan', 'Togo', 'Uganda', 'Zambia', 'Zimbabwe',
                     'Republic of the Congo', 'United Republic of Tanzania'
                 ]
                 
@@ -1132,7 +1171,7 @@ def main():
                     "SARI Only": "#4CAF50",            # Green  
                     "ILI Only": "#FF9800",             # Orange
                     "Limited/None": "#E0E0E0",         # Light gray - insufficient data
-                    "Not Surveyed": "#FFFFFF"          # White - not in survey
+                    "Not Surveyed": "#C0C0C0"          # Gray - not in survey
                 }
                 
                 # Create the map
@@ -1170,7 +1209,7 @@ def main():
                         'showcoastlines': True,
                         'coastlinecolor': "#CCCCCC",
                         'showland': True,
-                        'landcolor': '#F5F5F5',
+                        'landcolor': '#555555',
                         'bgcolor': 'white'
                     },
                     height=500,
@@ -1222,7 +1261,7 @@ def main():
                             <span style="font-size: 12px;">Insufficient Data</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #FFFFFF; font-size: 16px; border: 1px solid #ccc;">●</span> 
+                            <span style="color: #C0C0C0; font-size: 16px;">●</span> 
                             <span style="font-size: 12px;">Not Surveyed</span>
                         </div>
                     </div>
@@ -1238,16 +1277,35 @@ def main():
                 # Calculate comprehensive surveillance metrics
                 
                 # 1. Total Number of Countries with Surveillance (ILI or SARI)
-                # Look for "Type of" surveillance indicators
+                # Look for "Type of" surveillance indicators, excluding 'No' and non-meaningful responses
+                # Also exclude countries with zero sentinel sites for both SARI and ILI
                 sari_type_data = surveillance_data[
                     (surveillance_data['indicator'] == 'Type of SARI surveillance') &
-                    (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+                    (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan', '0']))
                 ]
                 ili_type_data = surveillance_data[
                     (surveillance_data['indicator'] == 'Type of ILI surveillance') &
-                    (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan']))
+                    (~surveillance_data['response'].str.lower().isin(['n/a', 'no', 'non', 'no response', 'nan', '0']))
                 ]
-                total_countries_with_surveillance = len(set(sari_type_data['country'].unique()) | set(ili_type_data['country'].unique()))
+                
+                # Further exclude countries where both SARI and ILI sentinel sites are zero
+                _sari_site_counts = surveillance_data[
+                    surveillance_data['indicator'] == 'Number of SARI sentinel surveillance sites'
+                ].copy()
+                _ili_site_counts = surveillance_data[
+                    surveillance_data['indicator'] == 'Numbers of ILI sentinel surveillance sites'
+                ].copy()
+                _sari_site_counts['_sites'] = _sari_site_counts['response'].apply(_parse_site_count)
+                _ili_site_counts['_sites'] = _ili_site_counts['response'].apply(_parse_site_count)
+                _sari_by_c = _sari_site_counts.groupby('country')['_sites'].sum()
+                _ili_by_c = _ili_site_counts.groupby('country')['_sites'].sum()
+                _zero_site_countries = {
+                    c for c in (set(_sari_by_c.index) | set(_ili_by_c.index))
+                    if _sari_by_c.get(c, 0) == 0 and _ili_by_c.get(c, 0) == 0
+                }
+                
+                candidate_countries = set(sari_type_data['country'].unique()) | set(ili_type_data['country'].unique())
+                total_countries_with_surveillance = len(candidate_countries - _zero_site_countries)
                 
                 # 2. Total Number of SARI sites
                 sari_sites_data = surveillance_data[
@@ -1609,15 +1667,16 @@ def main():
                 
                 lab_country_df = pd.DataFrame(lab_country_summary)
                 
-                # Add all African countries to ensure proper background colors
+                # Add all 47 WHO AFRO member states to ensure proper background colors
+                # (excludes EMRO countries: Djibouti, Egypt, Libya, Morocco, Somalia, Sudan, Tunisia)
                 all_african_countries = [
                     'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
                     'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
-                    'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
-                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Côte d\'Ivoire', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
-                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
+                    'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
+                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Côte d\'Ivoire', 'Kenya', 'Lesotho', 'Liberia', 
+                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Mozambique', 'Namibia', 
                     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
-                    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+                    'South Africa', 'South Sudan', 'Togo', 'Uganda', 'Zambia', 'Zimbabwe',
                     'Republic of the Congo', 'United Republic of Tanzania'
                 ]
                 
@@ -1703,7 +1762,7 @@ def main():
                         'showcoastlines': True,
                         'coastlinecolor': "#CCCCCC",
                         'showland': True,
-                        'landcolor': '#F5F5F5',
+                        'landcolor': '#555555',
                         'bgcolor': 'white'
                     },
                     height=500,
@@ -2118,6 +2177,8 @@ def main():
                                 'scope': 'africa',
                                 'showframe': False,
                                 'showcoastlines': True,
+                                'showland': True,
+                                'landcolor': '#555555',
                                 'projection_type': 'equirectangular'
                             },
                             coloraxis_colorbar={
@@ -2391,6 +2452,8 @@ def main():
                                 scope='africa',
                                 showframe=False,
                                 showcoastlines=True,
+                                showland=True,
+                                landcolor='#555555',
                                 projection_type='equirectangular'
                             ),
                             coloraxis_colorbar=dict(
@@ -2597,15 +2660,16 @@ def main():
                 
                 vax_country_df = pd.DataFrame(vax_country_summary)
                 
-                # Add all African countries to ensure proper background colors
+                # Add all 47 WHO AFRO member states to ensure proper background colors
+                # (excludes EMRO countries: Djibouti, Egypt, Libya, Morocco, Somalia, Sudan, Tunisia)
                 all_african_countries = [
                     'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
                     'Central African Republic', 'Chad', 'Comoros', 'Democratic Republic of the Congo', 
-                    'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
-                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Côte d\'Ivoire', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
-                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
+                    'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
+                    'Ghana', 'Guinea', 'Guinea-Bissau', 'Côte d\'Ivoire', 'Kenya', 'Lesotho', 'Liberia', 
+                    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Mozambique', 'Namibia', 
                     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
-                    'Somalia', 'South Africa', 'South Sudan', 'Sudan','Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+                    'South Africa', 'South Sudan', 'Togo', 'Uganda', 'Zambia', 'Zimbabwe',
                     'Republic of the Congo', 'United Republic of Tanzania'
                 ]
                 
@@ -2690,7 +2754,7 @@ def main():
                         'showcoastlines': True,
                         'coastlinecolor': "#CCCCCC",
                         'showland': True,
-                        'landcolor': '#F5F5F5',
+                        'landcolor': '#555555',
                         'bgcolor': 'white'
                     },
                     height=500,
